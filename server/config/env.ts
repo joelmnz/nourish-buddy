@@ -6,16 +6,28 @@ const envSchema = z.object({
   ADMIN_PASSWORD: z.string().min(1).optional(),
   SESSION_SECRET: z.string().min(32),
   DATABASE_PATH: z.string().default('./data/nourish.sqlite'),
-  VAPID_PUBLIC_KEY: z.string().min(1),
-  VAPID_PRIVATE_KEY: z.string().min(1),
-  VAPID_SUBJECT: z.string().email().or(z.string().url()),
+  VAPID_PUBLIC_KEY: z.string().min(1).optional(),
+  VAPID_PRIVATE_KEY: z.string().min(1).optional(),
+  VAPID_SUBJECT: z.string().email().or(z.string().url()).optional(),
   ALLOWED_ORIGIN: z.string().url(),
+  // When true, CORS origin checks are disabled and CSP is relaxed for connect-src.
+  // Intended for use behind trusted reverse proxies/tunnels only.
+  INSECURE_DISABLE_ORIGIN_CHECKS: z.coerce.boolean().default(false),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.coerce.number().int().positive().default(8080),
 }).refine(
   (data) => data.ADMIN_PASSWORD_HASH || data.ADMIN_PASSWORD,
   {
     message: 'Either ADMIN_PASSWORD_HASH or ADMIN_PASSWORD must be set',
+  }
+).refine(
+  (data) => {
+    const hasAnyVapid = data.VAPID_PUBLIC_KEY || data.VAPID_PRIVATE_KEY || data.VAPID_SUBJECT;
+    const hasAllVapid = data.VAPID_PUBLIC_KEY && data.VAPID_PRIVATE_KEY && data.VAPID_SUBJECT;
+    return !hasAnyVapid || hasAllVapid;
+  },
+  {
+    message: 'If any VAPID key is set, all three (PUBLIC, PRIVATE, SUBJECT) must be set',
   }
 );
 

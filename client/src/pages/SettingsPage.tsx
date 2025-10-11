@@ -91,10 +91,16 @@ export default function SettingsPage() {
         return;
       }
 
+      const config = await api.push.config();
+      if (!config.enabled || !config.publicKey) {
+        alert('Push notifications are not configured on the server');
+        return;
+      }
+
       const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-         applicationServerKey: urlBase64ToUint8Array(import.meta.env.VITE_VAPID_PUBLIC_KEY),
+         applicationServerKey: urlBase64ToUint8Array(config.publicKey),
       });
 
       const json = subscription.toJSON();

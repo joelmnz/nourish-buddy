@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+const API_BASE = import.meta.env.VITE_API_URL || '';
 
 class ApiError extends Error {
   status: number;
@@ -209,6 +209,9 @@ export const api = {
   },
 
   push: {
+    async config() {
+      return request<{ enabled: boolean; publicKey?: string }>('/api/push/config');
+    },
     async subscribe(data: { endpoint: string; keys: { p256dh: string; auth: string }; tz: string }) {
       return request('/api/push/subscribe', { method: 'POST', body: JSON.stringify(data) });
     },

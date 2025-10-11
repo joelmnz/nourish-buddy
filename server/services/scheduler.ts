@@ -16,15 +16,19 @@ const scheduledJobs: ScheduledJob[] = [];
 export function initializeScheduler() {
   const env = getEnv();
 
-  webpush.setVapidDetails(
-    env.VAPID_SUBJECT,
-    env.VAPID_PUBLIC_KEY,
-    env.VAPID_PRIVATE_KEY
-  );
+  if (env.VAPID_PUBLIC_KEY && env.VAPID_PRIVATE_KEY && env.VAPID_SUBJECT) {
+    webpush.setVapidDetails(
+      env.VAPID_SUBJECT,
+      env.VAPID_PUBLIC_KEY,
+      env.VAPID_PRIVATE_KEY
+    );
 
-  rebuildAllSchedules().catch((err) => {
-    console.error('Failed to initialize scheduler:', err);
-  });
+    rebuildAllSchedules().catch((err) => {
+      console.error('Failed to initialize scheduler:', err);
+    });
+  } else {
+    console.log('VAPID keys not configured, push notifications disabled');
+  }
 }
 
 export async function rebuildAllSchedules() {
