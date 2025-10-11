@@ -1,5 +1,5 @@
 import type { Context, Next } from 'hono';
-import { isProduction } from '../config/env.ts';
+import { getEnv, isProduction } from '../config/env.ts';
 
 export async function securityHeadersMiddleware(c: Context, next: Next) {
   await next();
@@ -10,6 +10,13 @@ export async function securityHeadersMiddleware(c: Context, next: Next) {
   c.header('X-XSS-Protection', '1; mode=block');
   
   if (isProduction()) {
-    c.header('Content-Security-Policy', "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'");
+    const env = getEnv();
+    if (env.INSECURE_DISABLE_ORIGIN_CHECKS) {
+      // Relax CSP to permit cross-origin API calls through tunnels/CDNs.
+      // Note: This is less secure and intended for controlled environments.
+      c.header('Content-Security-Policy', "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src *");
+    } else {
+      c.header('Content-Security-Policy', "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'");
+    }
   }
 }

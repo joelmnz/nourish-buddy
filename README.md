@@ -124,6 +124,51 @@ From inside `client/` you can also run:
 - DB issues: Delete the `./data` folder to reset the local DB (you’ll lose data), then restart the API to re-migrate/seed.
 - Different ports: If you run API on a non-default port, set `VITE_API_URL` in `client/.env` and update `ALLOWED_ORIGIN` accordingly.
 
+## Cloudflare Tunnel / reverse proxy
+
+If you deploy behind Cloudflare Tunnel (or another reverse proxy that terminates TLS and forwards to your container), your browser origin may not match the API host directly. This can trigger CORS and CSP blocks by default.
+
+To support this scenario safely, enable a permissive mode in the server and ensure cookies work cross-origin:
+
+1. Environment variables
+
+- `VITE_API_URL`: Set to your public API URL (the tunnel URL), for example `https://api.example-tunnel.cfargotunnel.com`.
+- `ALLOWED_ORIGIN`: Set to your frontend’s public URL (e.g., `https://app.example.com`).
+- `INSECURE_DISABLE_ORIGIN_CHECKS=true`: Enables dynamic CORS (reflects the request Origin), relaxes CSP `connect-src` so the browser can call the API, and sets cookies with `SameSite=None; Secure` for cross-origin.
+
+1. HTTPS required for cookies
+
+When `SameSite=None` is used, browsers require the `Secure` flag and an HTTPS origin. Cloudflare Tunnel provides HTTPS at the edge, so this requirement is met as long as you use the tunnel URL in the browser.
+
+1. Docker compose tip
+
+Set the variables on the server container. Example:
+
+```yaml
+environment:
+  NODE_ENV: production
+  PORT: 8080
+  ADMIN_USERNAME: ${ADMIN_USERNAME}
+  ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH}
+  SESSION_SECRET: ${SESSION_SECRET}
+  VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY}
+  VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY}
+  VAPID_SUBJECT: ${VAPID_SUBJECT}
+  ALLOWED_ORIGIN: https://app.example.com
+  INSECURE_DISABLE_ORIGIN_CHECKS: "true"
+```
+
+On the client side, build with:
+
+```bash
+VITE_API_URL=https://api.example-tunnel.cfargotunnel.com bun run build:client
+```
+
+1. Notes
+
+- This mode is less strict and meant for controlled setups behind trusted tunnels/CDNs. If you later host the API and client on the same origin/domain, set `INSECURE_DISABLE_ORIGIN_CHECKS=false` and keep `ALLOWED_ORIGIN` strict.
+- If you still see login issues: open the browser dev tools, check the Network tab and Console for CSP or CORS errors, verify cookies are being set with `SameSite=None; Secure`, and ensure responses include the `x-csrf-token` header from `/api/auth/me`.
+
 
 ## License
 

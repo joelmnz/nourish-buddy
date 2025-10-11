@@ -2,7 +2,7 @@ import { getDb } from '../db/index.ts';
 import { sessions } from '../db/schema.ts';
 import { generateToken, hashToken } from '../utils/crypto.ts';
 import { eq, lt } from 'drizzle-orm';
-import { getEnv } from '../config/env.ts';
+import { getEnv, isProduction } from '../config/env.ts';
 
 const SESSION_DURATION_DAYS = 30;
 
@@ -58,12 +58,11 @@ export async function deleteSession(token: string): Promise<void> {
   await db.delete(sessions).where(eq(sessions.tokenHash, tokenHash));
 }
 
-export async function cleanupExpiredSessions(): Promise<number> {
+export async function cleanupExpiredSessions(): Promise<void> {
   const db = await getDb();
   const now = new Date().toISOString();
   
-  const result = await db.delete(sessions).where(lt(sessions.expiresAt, now));
-  return result.rowsAffected ?? 0;
+  await db.delete(sessions).where(lt(sessions.expiresAt, now));
 }
 
 export function getSessionCookieName(): string {
@@ -72,11 +71,15 @@ export function getSessionCookieName(): string {
 
 export function createSessionCookie(sessionData: SessionData): string {
   const env = getEnv();
-  const secure = env.NODE_ENV === 'production' ? 'Secure; ' : '';
-  
-  return `${getSessionCookieName()}=${sessionData.token}; HttpOnly; ${secure}SameSite=Lax; Path=/; Max-Age=${SESSION_DURATION_DAYS * 24 * 60 * 60}`;
+  const secure = isProduction() || env.INSECURE_DISABLE_ORIGIN_CHECKS ? 'Secure; ' : '';
+  const sameSite = env.INSECURE_DISABLE_ORIGIN_CHECKS ? 'None' : 'Lax';
+  return `${getSessionCookieName()}=${sessionData.token}; HttpOnly; ${secure}SameSite=${sameSite}; Path=/; Max-Age=${SESSION_DURATION_DAYS * 24 * 60 * 60}`;
 }
 
 export function createSessionClearCookie(): string {
-  return `${getSessionCookieName()}=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0`;
+  // Clear cookie mirrors attributes where possible
+  const env = getEnv();
+  const secure = isProduction() || env.INSECURE_DISABLE_ORIGIN_CHECKS ? 'Secure; ' : '';
+  const sameSite = env.INSECURE_DISABLE_ORIGIN_CHECKS ? 'None' : 'Lax';
+  return `${getSessionCookieName()}=; HttpOnly; ${secure}SameSite=${sameSite}; Path=/; Max-Age=0`;
 }

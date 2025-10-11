@@ -10,6 +10,9 @@ const envSchema = z.object({
   VAPID_PRIVATE_KEY: z.string().min(1),
   VAPID_SUBJECT: z.string().email().or(z.string().url()),
   ALLOWED_ORIGIN: z.string().url(),
+  // When true, CORS origin checks are disabled and CSP is relaxed for connect-src.
+  // Intended for use behind trusted reverse proxies/tunnels only.
+  INSECURE_DISABLE_ORIGIN_CHECKS: z.coerce.boolean().default(false),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.coerce.number().int().positive().default(8080),
 }).refine(
