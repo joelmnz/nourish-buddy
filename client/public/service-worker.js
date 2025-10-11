@@ -21,7 +21,7 @@ self.addEventListener('push', (event) => {
 
   const title = data.title || 'Nourish Buddy';
   const body = data.body || 'You have a new reminder';
-  const icon = data.icon || '/vite.svg';
+  const icon = data.icon || '/icon-192.png';
 
   event.waitUntil(
     self.registration.showNotification(title, {

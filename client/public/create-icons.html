@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Generate Icons</title>
+</head>
+<body>
+  <h1>Icon Generator</h1>
+  <p>Generating icons...</p>
+  <canvas id="canvas192" width="192" height="192"></canvas>
+  <canvas id="canvas512" width="512" height="512"></canvas>
+  <div id="links"></div>
+  
+  <script>
+    function drawIcon(canvas) {
+      const ctx = canvas.getContext('2d');
+      const size = canvas.width;
+      const scale = size / 512;
+      
+      ctx.fillStyle = '#10b981';
+      ctx.beginPath();
+      ctx.roundRect(0, 0, size, size, 128 * scale);
+      ctx.fill();
+      
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.arc(size/2, size/2, 160 * scale, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.lineWidth = 40 * scale;
+      ctx.strokeStyle = '#fff';
+      ctx.stroke();
+      
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.arc(size/2, size/2, 80 * scale, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.fillStyle = '#10b981';
+      ctx.beginPath();
+      ctx.arc(size/2, size/2, 60 * scale, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.fillStyle = '#fff';
+      const crossSize = 40 * scale;
+      const crossWidth = 10 * scale;
+      ctx.fillRect(size/2 - crossWidth, size/2 - crossSize, crossWidth * 2, crossSize * 2);
+      ctx.fillRect(size/2 - crossSize, size/2 - crossWidth, crossSize * 2, crossWidth * 2);
+    }
+    
+    const canvas192 = document.getElementById('canvas192');
+    const canvas512 = document.getElementById('canvas512');
+    
+    drawIcon(canvas192);
+    drawIcon(canvas512);
+    
+    const links = document.getElementById('links');
+    
+    canvas192.toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'icon-192.png';
+      a.textContent = 'Download icon-192.png';
+      a.style.display = 'block';
+      a.style.margin = '10px';
+      links.appendChild(a);
+    });
+    
+    canvas512.toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'icon-512.png';
+      a.textContent = 'Download icon-512.png';
+      a.style.display = 'block';
+      a.style.margin = '10px';
+      links.appendChild(a);
+    });
+    
+    document.querySelector('p').textContent = 'Click the links below to download the PNG icons:';
+  </script>
+</body>
+</html>
