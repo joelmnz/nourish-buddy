@@ -62,8 +62,8 @@ export async function cleanupExpiredSessions(): Promise<number> {
   const db = await getDb();
   const now = new Date().toISOString();
   
-  await db.delete(sessions).where(lt(sessions.expiresAt, now));
-  return 0;
+  const result = await db.delete(sessions).where(lt(sessions.expiresAt, now));
+  return result.rowsAffected ?? 0;
 }
 
 export function getSessionCookieName(): string {
