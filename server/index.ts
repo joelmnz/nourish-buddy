@@ -1,0 +1,76 @@
+import { Hono } from 'hono';
+import { serve } from 'bun';
+import { serveStatic } from 'hono/bun';
+import { getEnv } from './config/env.ts';
+import { authMiddleware } from './middleware/auth.ts';
+import { csrfMiddleware } from './middleware/csrf.ts';
+import { corsMiddleware } from './middleware/cors.ts';
+import { securityHeadersMiddleware } from './middleware/security.ts';
+import { errorHandler } from './middleware/error.ts';
+import { authRoutes } from './routes/auth.ts';
+import { settingsRoutes } from './routes/settings.ts';
+import { mealPlanRoutes } from './routes/meal-plan.ts';
+import { todayRoutes } from './routes/today.ts';
+import { historyRoutes } from './routes/history.ts';
+import { weightsRoutes } from './routes/weights.ts';
+import { statsRoutes } from './routes/stats.ts';
+import { exportRoutes } from './routes/export.ts';
+import { pushRoutes } from './routes/push.ts';
+import { runMigrations } from './db/migrate.ts';
+import { cleanupExpiredSessions } from './services/session.ts';
+import { initializeScheduler } from './services/scheduler.ts';
+
+type Variables = {
+  auth: { authenticated: boolean };
+  csrfToken: string;
+};
+
+const env = getEnv();
+const app = new Hono<{ Variables: Variables }>();
+
+app.use('*', securityHeadersMiddleware);
+app.use('*', corsMiddleware());
+app.use('*', csrfMiddleware);
+app.use('*', authMiddleware);
+
+app.onError(errorHandler);
+
+app.get('/health', (c) => c.json({ status: 'ok', timestamp: new Date().toISOString() }));
+
+app.route('/api/auth', authRoutes);
+app.route('/api/settings', settingsRoutes);
+app.route('/api/meal-plan', mealPlanRoutes);
+app.route('/api/today', todayRoutes);
+app.route('/api/history', historyRoutes);
+app.route('/api/weights', weightsRoutes);
+app.route('/api/stats', statsRoutes);
+app.route('/api/export', exportRoutes);
+app.route('/api/push', pushRoutes);
+
+// Serve static files from built client in production
+if (env.NODE_ENV === 'production') {
+  // Serve static assets (js, css, images, etc.)
+  app.use('/assets/*', serveStatic({ root: './client/dist' }));
+  app.use('/service-worker.js', serveStatic({ path: './client/dist/service-worker.js' }));
+  app.use('/manifest.webmanifest', serveStatic({ path: './client/dist/manifest.webmanifest' }));
+  app.use('/vite.svg', serveStatic({ path: './client/dist/vite.svg' }));
+  
+  // Serve index.html for all other routes (SPA fallback)
+  app.get('*', serveStatic({ path: './client/dist/index.html' }));
+}
+
+await runMigrations();
+
+setInterval(() => {
+  cleanupExpiredSessions().catch(console.error);
+}, 60 * 60 * 1000);
+
+initializeScheduler();
+
+serve({
+  port: env.PORT,
+  fetch: app.fetch,
+});
+
+console.log(`✓ Server running on port ${env.PORT}`);
+console.log(`✓ Environment: ${env.NODE_ENV}`);
