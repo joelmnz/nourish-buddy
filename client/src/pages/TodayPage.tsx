@@ -7,16 +7,17 @@ export default function TodayPage() {
   const [avgSize, setAvgSize] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [date]);
 
   async function loadData() {
+    setLoading(true);
     try {
-      const today = new Date().toISOString().split('T')[0];
       const [todayData, statsData] = await Promise.all([
-        api.today.get(today),
+        api.today.get(date),
         api.stats.meals(),
       ]);
       setMeals(todayData.meals);
@@ -35,7 +36,6 @@ export default function TodayPage() {
       if (!meal) return;
 
       const updated = { ...meal, ...updates };
-      const date = new Date().toISOString().split('T')[0];
       await api.today.logMeal({
         date,
         slotKey,
@@ -63,13 +63,21 @@ export default function TodayPage() {
     <div>
       <div className="space-between mb-4">
         <h1 className="h1">Today</h1>
-        <div className="text-muted">
-          {new Date().toLocaleDateString('en-US', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-          })}
+        <div className="row gap-4">
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="input"
+          />
+          <div className="text-muted">
+            {new Date(date).toLocaleDateString('en-US', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            })}
+          </div>
         </div>
       </div>
 
