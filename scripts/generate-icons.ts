@@ -15,9 +15,12 @@ function ensureDir(path: string) {
 }
 
 function generatePng(size: (typeof SIZES)[number]) {
-  const svg = readFileSync(INPUT_SVG);
-  const resvg = new Resvg(svg, {
-    fitTo: { mode: 'width', value: size },
+  const svgBuffer = readFileSync(INPUT_SVG);
+  const svgStr = svgBuffer.toString();
+  // Inject width and height attributes to ensure correct output size
+  const svgWithSize = svgStr.replace('<svg ', `<svg width="${size}" height="${size}" `);
+  
+  const resvg = new Resvg(svgWithSize, {
     // sharpen a bit for small sizes
     shapeRendering: 2,
     textRendering: 2,
