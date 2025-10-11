@@ -1,0 +1,38 @@
+{
+  "name": "nourish-buddy",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun run --watch server/index.ts",
+    "dev:client": "cd client && bun run dev",
+    "build": "bun run build:client && bun run build:server",
+    "build:client": "cd client && bun run build",
+    "build:server": "bun build server/index.ts --target=bun --outdir=dist",
+    "start": "NODE_ENV=production bun run dist/index.js",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "bun run server/db/migrate.ts",
+    "db:studio": "drizzle-kit studio",
+    "typecheck": "tsc --noEmit && cd client && bunx tsc --noEmit",
+    "test": "bun test"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^3.0.0",
+    "@types/bun": "latest",
+    "@types/node-cron": "^3.0.11",
+    "@types/web-push": "^3.6.4",
+    "drizzle-kit": "^0.31.5"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@hono/zod-validator": "^0.7.4",
+    "bcryptjs": "^3.0.2",
+    "drizzle-orm": "^0.44.6",
+    "hono": "^4.9.10",
+    "node-cron": "^4.2.1",
+    "web-push": "^3.6.7",
+    "zod": "^4.1.12"
+  }
+}

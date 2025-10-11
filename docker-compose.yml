@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  nourish-buddy:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=production
+      - PORT=8080
+      # Database settings
+      - DATABASE_PATH=/app/data/nourish.sqlite
+      # Session settings
+      - SESSION_SECRET=${SESSION_SECRET}
+      # Admin credentials
+      - ADMIN_USERNAME=${ADMIN_USERNAME}
+      - ADMIN_PASSWORD_HASH=${ADMIN_PASSWORD_HASH}
+      # CORS - in production, set to your actual domain
+      - ALLOWED_ORIGIN=${ALLOWED_ORIGIN:-http://localhost:8080}
+      # VAPID keys for push notifications (optional)
+      - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY:-}
+      - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY:-}
+      - VAPID_SUBJECT=${VAPID_SUBJECT:-}
+    volumes:
+      # Persist database across container restarts
+      - nourish-data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "bun", "-e", "fetch('http://localhost:8080/health').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))"]
+      interval: 30s
+      timeout: 3s
+      start_period: 5s
+      retries: 3
+
+volumes:
+  nourish-data:
+    driver: local
