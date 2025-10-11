@@ -52,7 +52,7 @@ export default function Layout() {
       <nav className="topbar">
         <div className="container topbar-inner">
           <div className="row">
-            <div className="brand">Nourish Buddy</div>
+            <div className="brand"><NavLink to="/">Nourish Buddy</NavLink></div>
             <div className="nav" aria-label="Primary">
               <NavLink to="/" end className={({ isActive }) => isActive ? 'active' : ''}>Today</NavLink>
               <NavLink to="/plan" className={({ isActive }) => isActive ? 'active' : ''}>Meal Plan</NavLink>
