@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api } from '../lib/api';
+import MealsByDayBar from '../components/MealsByDayBar';
 
 
 export default function HistoryPage() {
@@ -8,10 +9,16 @@ export default function HistoryPage() {
   const [meals, setMeals] = useState<Array<{ id: number; slotKey: string; size: number; completed: boolean; notes: string | null; time: string }>>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMeals, setLoadingMeals] = useState(false);
+  const [days, setDays] = useState<number>(14);
+  const [totals, setTotals] = useState<Array<{ date: string; total: number }>>([]);
 
   useEffect(() => {
     loadDates();
   }, []);
+
+  useEffect(() => {
+    loadTotals(days);
+  }, [days]);
 
   async function loadDates() {
     try {
@@ -21,6 +28,15 @@ export default function HistoryPage() {
       console.error('Failed to load history:', error);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadTotals(d: number) {
+    try {
+      const res = await api.stats.mealsByDay(d);
+      setTotals(res.totals);
+    } catch (error) {
+      console.error('Failed to load meal totals:', error);
     }
   }
 
@@ -76,6 +92,33 @@ export default function HistoryPage() {
   return (
     <div>
       <h1 className="h1 mb-4">Meal History</h1>
+
+      <div className="card padded mb-4">
+        <div className="space-between items-center">
+          <div className="row">
+            <div className="font-medium mr-3">Total meal size per day</div>
+            <div className="row">
+              <label className="text-sm text-muted mr-2" htmlFor="daysInput">Days</label>
+              <input
+                id="daysInput"
+                type="number"
+                min={1}
+                max={365}
+                value={days}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value, 10);
+                  if (!isNaN(val)) setDays(Math.max(1, Math.min(365, val)));
+                }}
+                className="input"
+                style={{ width: 96 }}
+              />
+            </div>
+          </div>
+        </div>
+        <div className="mt-4">
+          <MealsByDayBar totals={totals} />
+        </div>
+      </div>
 
       <div className="grid grid-3 gap-4">
         <div>

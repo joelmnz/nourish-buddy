@@ -182,6 +182,9 @@ export const api = {
     async meals(days: number = 14) {
       return request<{ days: number; average_size: number }>(`/api/stats/meals?days=${days}`);
     },
+    async mealsByDay(days: number = 14) {
+      return request<{ days: number; totals: Array<{ date: string; total: number }> }>(`/api/stats/meals-by-day?days=${days}`);
+    },
     async weights() {
       const res = await request<{ weights: Array<{ date: string; kg: number }> }>('/api/stats/weights');
       return res.weights;
