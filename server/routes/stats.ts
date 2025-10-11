@@ -28,13 +28,17 @@ statsRoutes.get('/meals', async (c) => {
   cutoffDate.setDate(cutoffDate.getDate() - days);
   const cutoffDateStr = cutoffDate.toISOString().split('T')[0];
 
+  if (!cutoffDateStr) {
+    return c.json({ error: 'Failed to compute cutoff date.' }, 500);
+  }
+
   const logs = await db
     .select({
       size: mealLogs.size,
       completed: mealLogs.completed,
     })
     .from(mealLogs)
-    .where(gte(mealLogs.date, cutoffDateStr!));
+    .where(gte(mealLogs.date, cutoffDateStr));
 
   const totalLogs = logs.length;
   const completedLogs = logs.filter((l) => l.completed).length;
