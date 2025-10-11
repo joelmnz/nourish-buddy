@@ -5,6 +5,7 @@ import { pushSubscriptions } from '../db/schema.ts';
 import { requireAuth } from '../middleware/auth.ts';
 import { eq } from 'drizzle-orm';
 import { rebuildAllSchedules } from '../services/scheduler.ts';
+import { getEnv } from '../config/env.ts';
 
 const subscribeSchema = z.object({
   endpoint: z.string(),
@@ -22,9 +23,22 @@ type Variables = {
 
 export const pushRoutes = new Hono<{ Variables: Variables }>();
 
+pushRoutes.get('/config', async (c) => {
+  const env = getEnv();
+  if (!env.VAPID_PUBLIC_KEY) {
+    return c.json({ enabled: false });
+  }
+  return c.json({ enabled: true, publicKey: env.VAPID_PUBLIC_KEY });
+});
+
 pushRoutes.use('*', requireAuth);
 
 pushRoutes.post('/subscribe', async (c) => {
+  const env = getEnv();
+  if (!env.VAPID_PUBLIC_KEY || !env.VAPID_PRIVATE_KEY || !env.VAPID_SUBJECT) {
+    return c.json({ error: 'Push notifications not configured' }, 503);
+  }
+
   const body = await c.req.json();
   const validation = subscribeSchema.safeParse(body);
 

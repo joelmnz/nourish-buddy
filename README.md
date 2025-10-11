@@ -42,6 +42,7 @@ cd client && bun install
 
 ```bash
 cp .env.example .env
+cd client && cp .env.example .env
 ```
 
 Required variables (see `.env.example` for guidance):
@@ -49,8 +50,12 @@ Required variables (see `.env.example` for guidance):
 - `ADMIN_USERNAME` and `ADMIN_PASSWORD_HASH` (bcrypt hash)
 - `SESSION_SECRET` (32+ chars; base64 from `openssl rand -base64 32` works well)
 - `ALLOWED_ORIGIN` (your frontend dev URL, usually `http://localhost:5173`)
-- `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` (for push notifications; optional during initial setup)
 - `PORT` (API port; default 8080)
+
+Optional variables for push notifications:
+
+- `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` — all three must be set together, or none
+- If not configured, push notifications will be disabled but the app will work normally
 
 Generate a password hash (example for password "admin"):
 
@@ -84,8 +89,8 @@ bun run dev:client
 ```
 
 - Starts Vite dev server (React UI)
-- The UI talks to the API at `http://localhost:8080` by default
-- If you change the API port or host, set `VITE_API_URL` in `client/.env`
+- Uses env from `client/.env` (set `VITE_API_URL=http://localhost:8080` for dev)
+- In production, the client uses same-origin (relative) API requests
 
 Login with the credentials you configured (defaults in `.env` are `admin` / `admin` if you kept the sample values).
 
@@ -113,7 +118,7 @@ From inside `client/` you can also run:
 - Sessions: Cookie-based; secure flags vary by `NODE_ENV`.
 - CSRF: Non-GET requests require a CSRF token. The client fetches it from `/api/auth/me` and sends it in the `x-csrf-token` header.
 - Database: SQLite at `DATABASE_PATH` (default `./data/nourish.sqlite`). WAL mode is enabled.
-- Push notifications (optional): Requires valid VAPID keys and HTTPS in production. Dev flows depend on your browser’s service worker support.
+- Push notifications (optional): All three VAPID keys must be configured together. If not set, push notifications are disabled gracefully. In production, HTTPS is required for service workers.
 
 
 ## Troubleshooting

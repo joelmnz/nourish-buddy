@@ -65,18 +65,22 @@ docker run -d \
 Required environment variables:
 
 - `ADMIN_USERNAME` - Admin username
-- `ADMIN_PASSWORD_HASH` - Bcrypt hash of admin password
+- `ADMIN_PASSWORD - Admin password
+- OR use hash
+- `ADMIN_PASSWORD_HASH` - Bcrypt hash of admin password (or use `ADMIN_PASSWORD` in dev)
 - `SESSION_SECRET` - Secret for session encryption (32+ characters)
-- `ALLOWED_ORIGIN` - CORS allowed origin (use container URL in production)
+- `ALLOWED_ORIGIN` - CORS allowed origin (use your domain or `http://localhost:8080` for local testing)
 
 Optional environment variables:
 
 - `PORT` - API port (default: 8080)
 - `NODE_ENV` - Environment (default: production)
 - `DATABASE_PATH` - SQLite database path (default: /app/data/nourish.sqlite)
-- `VAPID_PUBLIC_KEY` - VAPID public key for push notifications
-- `VAPID_PRIVATE_KEY` - VAPID private key for push notifications
-- `VAPID_SUBJECT` - VAPID subject (mailto: or https:// URL)
+- `VAPID_PUBLIC_KEY` - VAPID public key for push notifications (optional)
+- `VAPID_PRIVATE_KEY` - VAPID private key for push notifications (optional)
+- `VAPID_SUBJECT` - VAPID subject (mailto: or https:// URL) (optional)
+
+**Note on VAPID keys**: All three VAPID keys must be set together, or none. If not configured, push notifications will be disabled but the app will work normally.
 
 ## Generating Required Values
 
@@ -233,9 +237,10 @@ Verify `ALLOWED_ORIGIN` matches your client URL exactly, including protocol and 
 
 ### Push notifications not working
 
-1. Ensure VAPID keys are set
-2. Use HTTPS in production (required for service workers)
-3. Check browser console for service worker errors
+1. Verify VAPID keys are all set (all three required together)
+2. If VAPID keys are not configured, push notifications will be disabled (this is expected)
+3. Use HTTPS in production (required for service workers)
+4. Check browser console for service worker errors
 
 ## Development vs Production
 
