@@ -222,6 +222,53 @@ export const api = {
       return request('/api/push/heartbeat', { method: 'POST', body: JSON.stringify({ endpoint, tz }) });
     },
   },
+
+  issues: {
+    async list(params?: { page?: number; per_page?: number; search?: string }) {
+      const query = new URLSearchParams();
+      if (params?.page) query.set('page', params.page.toString());
+      if (params?.per_page) query.set('per_page', params.per_page.toString());
+      if (params?.search) query.set('search', params.search);
+      const queryString = query.toString();
+      const res = await request<{
+        issues: Array<{ id: number; date: string; title: string; severity: number; description: string | null; created_at: string; updated_at: string }>;
+        pagination: { page: number; per_page: number; total: number; total_pages: number };
+      }>(`/api/issues${queryString ? '?' + queryString : ''}`);
+      return {
+        issues: res.issues.map((i) => ({
+          id: i.id,
+          date: i.date,
+          title: i.title,
+          severity: i.severity,
+          description: i.description,
+          createdAt: i.created_at,
+          updatedAt: i.updated_at,
+        })),
+        pagination: res.pagination,
+      };
+    },
+    async get(id: number) {
+      const res = await request<{ id: number; date: string; title: string; severity: number; description: string | null; created_at: string; updated_at: string }>(`/api/issues/${id}`);
+      return {
+        id: res.id,
+        date: res.date,
+        title: res.title,
+        severity: res.severity,
+        description: res.description,
+        createdAt: res.created_at,
+        updatedAt: res.updated_at,
+      };
+    },
+    async create(data: { date: string; title: string; severity: number; description?: string }) {
+      return request('/api/issues', { method: 'POST', body: JSON.stringify(data) });
+    },
+    async update(id: number, data: { date?: string; title?: string; severity?: number; description?: string | null }) {
+      return request(`/api/issues/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+    },
+    async delete(id: number) {
+      return request(`/api/issues/${id}`, { method: 'DELETE' });
+    },
+  },
 };
 
 export { ApiError }; 

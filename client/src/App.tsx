@@ -6,6 +6,7 @@ import TodayPage from './pages/TodayPage';
 import MealPlanPage from './pages/MealPlanPage';
 import HistoryPage from './pages/HistoryPage';
 import WeightsPage from './pages/WeightsPage';
+import IssuesPage from './pages/IssuesPage';
 import SettingsPage from './pages/SettingsPage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -36,6 +37,7 @@ function App() {
             <Route path="plan" element={<MealPlanPage />} />
             <Route path="history" element={<HistoryPage />} />
             <Route path="weights" element={<WeightsPage />} />
+            <Route path="issues" element={<IssuesPage />} />
             <Route path="settings" element={<SettingsPage />} />
           </Route>
         </Routes>

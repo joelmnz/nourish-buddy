@@ -64,3 +64,13 @@ export const sessions = sqliteTable('sessions', {
   ip: text('ip'),
   userAgent: text('user_agent'),
 });
+
+export const issues = sqliteTable('issues', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  date: text('date').notNull(),
+  title: text('title').notNull(),
+  severity: integer('severity').notNull(),
+  description: text('description'),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+  updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
+});

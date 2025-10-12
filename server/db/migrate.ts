@@ -115,6 +115,20 @@ export async function runMigrations() {
   `);
 
   sqlite.run(`
+    CREATE TABLE IF NOT EXISTS issues (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      date TEXT NOT NULL,
+      title TEXT NOT NULL,
+      severity INTEGER NOT NULL CHECK(severity BETWEEN 0 AND 5),
+      description TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )
+  `);
+
+  sqlite.run(`CREATE INDEX IF NOT EXISTS idx_issues_date ON issues(date DESC)`);
+
+  sqlite.run(`
     CREATE TABLE IF NOT EXISTS sessions (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       token_hash TEXT NOT NULL UNIQUE,
