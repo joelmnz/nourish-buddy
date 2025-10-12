@@ -1,15 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api } from '../lib/api';
-
-interface Issue {
-  id: number;
-  date: string;
-  title: string;
-  severity: number;
-  description: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
+import type { Issue } from '../../../shared/types';
 
 interface IssueFormProps {
   issue?: Issue;
