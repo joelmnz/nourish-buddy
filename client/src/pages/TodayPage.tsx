@@ -1,13 +1,44 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { api } from '../lib/api';
 
+// Get today's date in YYYY-MM-DD format using the browser's local timezone
+function getLocalDateString(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 
 export default function TodayPage() {
+  const location = useLocation();
   const [meals, setMeals] = useState<Array<{ slotKey: string; time: string; name: string; size: number; completed: boolean; notes: string | null; logId: number | null }>>([]);
   const [avgSize, setAvgSize] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState(getLocalDateString());
+
+  // Reset date to current date when navigating to this page
+  useEffect(() => {
+    const today = getLocalDateString();
+    setDate(today);
+  }, [location.pathname]);
+
+  // Reset date to current date when page becomes visible (e.g., returning from background)
+  useEffect(() => {
+    function handleVisibilityChange() {
+      if (!document.hidden) {
+        const today = getLocalDateString();
+        setDate(today);
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
 
   useEffect(() => {
     loadData();
