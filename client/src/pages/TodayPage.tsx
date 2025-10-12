@@ -2,6 +2,14 @@ import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { api } from '../lib/api';
 
+// Get today's date in YYYY-MM-DD format using the browser's local timezone
+function getLocalDateString(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 
 export default function TodayPage() {
   const location = useLocation();
@@ -9,11 +17,11 @@ export default function TodayPage() {
   const [avgSize, setAvgSize] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState(getLocalDateString());
 
   // Reset date to current date when navigating to this page
   useEffect(() => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalDateString();
     setDate(today);
   }, [location.pathname]);
 
@@ -21,7 +29,7 @@ export default function TodayPage() {
   useEffect(() => {
     function handleVisibilityChange() {
       if (!document.hidden) {
-        const today = new Date().toISOString().split('T')[0];
+        const today = getLocalDateString();
         setDate(today);
       }
     }
