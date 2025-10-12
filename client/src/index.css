@@ -159,7 +159,7 @@ input, select { font: inherit; }
 .text-muted { color: var(--muted); }
 
 /* Mobile bottom nav */
-.bottom-nav { position: fixed; bottom: 8px; left: 50%; transform: translateX(-50%); background: rgba(17, 24, 39, 0.85); border: 1px solid var(--border); border-radius: 14px; padding: 6px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; width: calc(100% - 16px); max-width: 520px; box-shadow: var(--shadow); }
+.bottom-nav { position: fixed; bottom: 8px; left: 50%; transform: translateX(-50%); background: rgba(17, 24, 39, 0.85); border: 1px solid var(--border); border-radius: 14px; padding: 6px; display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; width: calc(100% - 16px); max-width: 620px; box-shadow: var(--shadow); }
 .bottom-nav a { padding: 10px; border-radius: 10px; color: var(--muted); text-align: center; }
 .bottom-nav a.active { background: #111827; color: var(--text); }
 @media (min-width: 1024px) {

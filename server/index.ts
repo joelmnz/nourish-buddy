@@ -16,6 +16,7 @@ import { weightsRoutes } from './routes/weights.ts';
 import { statsRoutes } from './routes/stats.ts';
 import { exportRoutes } from './routes/export.ts';
 import { pushRoutes } from './routes/push.ts';
+import { issuesRoutes } from './routes/issues.ts';
 import { runMigrations } from './db/migrate.ts';
 import { cleanupExpiredSessions } from './services/session.ts';
 import { initializeScheduler } from './services/scheduler.ts';
@@ -46,6 +47,7 @@ app.route('/api/weights', weightsRoutes);
 app.route('/api/stats', statsRoutes);
 app.route('/api/export', exportRoutes);
 app.route('/api/push', pushRoutes);
+app.route('/api/issues', issuesRoutes);
 
 // Serve static files from built client in production
 if (env.NODE_ENV === 'production') {

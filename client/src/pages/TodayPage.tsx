@@ -25,21 +25,6 @@ export default function TodayPage() {
     setDate(today);
   }, [location.pathname]);
 
-  // Reset date to current date when page becomes visible (e.g., returning from background)
-  useEffect(() => {
-    function handleVisibilityChange() {
-      if (!document.hidden) {
-        const today = getLocalDateString();
-        setDate(today);
-      }
-    }
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, []);
-
   useEffect(() => {
     loadData();
   }, [date]);

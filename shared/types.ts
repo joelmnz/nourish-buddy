@@ -103,3 +103,13 @@ export interface WeightStats {
   date: string;
   kg: number;
 }
+
+export interface Issue {
+  id: number;
+  date: string;
+  title: string;
+  severity: number;
+  description: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
