@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { api } from '../lib/api';
 
 interface Recipe {
@@ -208,11 +209,7 @@ export default function RecipesPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingRecipe, setEditingRecipe] = useState<RecipeDetail | undefined>();
 
-  useEffect(() => {
-    loadRecipes();
-  }, [searchQuery]);
-
-  async function loadRecipes() {
+  const loadRecipes = useCallback(async () => {
     try {
       setLoading(true);
       const data = await api.recipes.list(searchQuery || undefined);
@@ -222,7 +219,11 @@ export default function RecipesPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [searchQuery]);
+
+  useEffect(() => {
+    loadRecipes();
+  }, [loadRecipes]);
 
   function handleNewRecipe() {
     setEditingRecipe(undefined);
@@ -256,8 +257,9 @@ export default function RecipesPage() {
     try {
       await api.recipes.delete(id);
       loadRecipes();
-    } catch (error: any) {
-      if (error.status === 409) {
+    } catch (error) {
+      const status = (error as { status?: number }).status;
+      if (status === 409) {
         alert('Cannot delete this recipe because it is used in a weekly plan');
       } else {
         alert('Failed to delete recipe');
@@ -319,7 +321,7 @@ export default function RecipesPage() {
                 <tbody>
                   {recipes.map((recipe) => (
                     <tr key={recipe.id} className="tr">
-                      <td className="td">{recipe.title}</td>
+                       <td className="td"><Link className="link" to={`/recipe/${recipe.id}`}>{recipe.title}</Link></td>
                       <td className="td">
                         <div className="flex" style={{ gap: '4px', flexWrap: 'wrap' }}>
                           {recipe.slotKeys.map((key) => (

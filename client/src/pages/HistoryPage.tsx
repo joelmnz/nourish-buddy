@@ -79,7 +79,7 @@ export default function HistoryPage() {
         notes: updated.notes || undefined,
       });
 
-      setMeals((prev) => prev.map((m) => (m.id === id ? (updated as any) : m)));
+      setMeals((prev) => prev.map((m) => (m.id === id ? updated : m)));
     } catch (error) {
       console.error('Failed to update meal:', error);
     }

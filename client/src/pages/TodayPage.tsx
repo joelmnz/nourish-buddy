@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { api } from '../lib/api';
 
@@ -25,11 +25,7 @@ export default function TodayPage() {
     setDate(today);
   }, [location.pathname]);
 
-  useEffect(() => {
-    loadData();
-  }, [date]);
-
-  async function loadData() {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
       const [todayData, statsData] = await Promise.all([
@@ -43,7 +39,11 @@ export default function TodayPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [date]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   async function updateMeal(slotKey: string, updates: Partial<{ size: number; notes: string | null; completed: boolean }>) {
     setSaving(slotKey);
@@ -60,7 +60,7 @@ export default function TodayPage() {
         completed: updated.completed ?? false,
       });
 
-      setMeals((prev) => prev.map((m) => (m.slotKey === slotKey ? (updated as any) : m)));
+      setMeals((prev) => prev.map((m) => (m.slotKey === slotKey ? updated : m)));
 
       const statsData = await api.stats.meals();
       setAvgSize(statsData.average_size ?? null);
