@@ -15,14 +15,17 @@ function urlBase64ToUint8Array(base64String?: string) {
 }
 
 export default function SettingsPage() {
-  const [settings, setSettings] = useState<{ remindersEnabled: boolean; timeFormat: TimeFormat } | null>(null);
+  const [settings, setSettings] = useState<{ remindersEnabled: boolean; timeFormat: TimeFormat; startingMealPlanDate: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [exporting, setExporting] = useState<'meals' | 'weights' | null>(null);
   const [testingPush, setTestingPush] = useState(false);
+  const [mealSlots, setMealSlots] = useState<Array<{ slotKey: string; orderIndex: number; time24h: string; name: string; notes: string | null }>>([]);
+  const [slotChanges, setSlotChanges] = useState(false);
 
   useEffect(() => {
     loadSettings();
+    loadMealSlots();
   }, []);
 
   async function loadSettings() {
@@ -36,7 +39,16 @@ export default function SettingsPage() {
     }
   }
 
-  async function updateSetting(key: keyof { remindersEnabled: boolean; timeFormat: TimeFormat }, value: boolean) {
+  async function loadMealSlots() {
+    try {
+      const data = await api.mealPlan.get();
+      setMealSlots(data);
+    } catch (error) {
+      console.error('Failed to load meal slots:', error);
+    }
+  }
+
+  async function updateSetting(key: keyof { remindersEnabled: boolean; timeFormat: TimeFormat; startingMealPlanDate: string | null }, value: boolean | string | null) {
     if (!settings) return;
 
     const updated = { ...settings, [key]: value };
@@ -45,14 +57,38 @@ export default function SettingsPage() {
 
     try {
       if (key === 'remindersEnabled') {
-        await api.settings.update({ remindersEnabled: value });
+        await api.settings.update({ remindersEnabled: value as boolean });
       }
       if (key === 'timeFormat') {
         await api.settings.update({ timeFormat: value ? '24' : '12' });
       }
+      if (key === 'startingMealPlanDate') {
+        await api.settings.update({ startingMealPlanDate: value as string | null });
+      }
     } catch (error) {
       console.error('Failed to update setting:', error);
       setSettings(settings);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function updateSlot(slotKey: string, field: 'time24h' | 'name' | 'notes', value: string) {
+    setMealSlots((prev) =>
+      prev.map((item) =>
+        item.slotKey === slotKey ? { ...item, [field]: value } : item
+      )
+    );
+    setSlotChanges(true);
+  }
+
+  async function saveMealSlots() {
+    setSaving(true);
+    try {
+      await api.mealPlan.update(mealSlots);
+      setSlotChanges(false);
+    } catch (error) {
+      console.error('Failed to save meal slots:', error);
     } finally {
       setSaving(false);
     }
@@ -166,8 +202,62 @@ export default function SettingsPage() {
                 </div>
               </button>
             </div>
+
+            <div className="mt-3">
+              <div className="font-medium">Starting Meal Plan Date</div>
+              <div className="text-sm text-muted mb-2">The date when your meal plan starts (for weekly planning)</div>
+              <input
+                type="date"
+                value={settings.startingMealPlanDate || ''}
+                onChange={(e) => updateSetting('startingMealPlanDate', e.target.value || null)}
+                className="input"
+              />
+            </div>
           </div>
           {saving && <div className="mt-3 text-sm" style={{ color: 'rgb(74, 222, 128)' }}>Saving...</div>}
+        </div>
+
+        <div className="padded">
+          <div className="space-between mb-3">
+            <h2 className="h2">Meal Times</h2>
+            <button
+              onClick={saveMealSlots}
+              disabled={!slotChanges || saving}
+              className={`btn ${slotChanges && !saving ? 'btn-primary' : 'btn-ghost'}`}
+            >
+              {saving ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+          {slotChanges && (
+            <div className="mb-3 text-sm" style={{ color: 'rgb(245, 158, 11)' }}>You have unsaved changes</div>
+          )}
+          <div className="space-y-3">
+            {mealSlots.map((slot) => (
+              <div key={slot.slotKey} className="grid" style={{ gridTemplateColumns: '120px 1fr', gap: '12px' }}>
+                <div>
+                  <label className="text-sm text-muted" htmlFor={`time-${slot.slotKey}`}>Time</label>
+                  <input
+                    id={`time-${slot.slotKey}`}
+                    type="time"
+                    value={slot.time24h}
+                    onChange={(e) => updateSlot(slot.slotKey, 'time24h', e.target.value)}
+                    className="input"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-muted" htmlFor={`name-${slot.slotKey}`}>Name</label>
+                  <input
+                    id={`name-${slot.slotKey}`}
+                    type="text"
+                    value={slot.name}
+                    onChange={(e) => updateSlot(slot.slotKey, 'name', e.target.value)}
+                    placeholder="Meal name..."
+                    className="input"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="padded">
