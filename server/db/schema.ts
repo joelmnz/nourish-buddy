@@ -5,6 +5,7 @@ export const settings = sqliteTable('settings', {
   id: integer('id').primaryKey(),
   remindersEnabled: integer('reminders_enabled', { mode: 'boolean' }).notNull().default(false),
   timeFormat: text('time_format', { enum: ['12', '24'] }).notNull().default('12'),
+  startingMealPlanDate: text('starting_meal_plan_date'),
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
   updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
 });
@@ -71,6 +72,50 @@ export const issues = sqliteTable('issues', {
   title: text('title').notNull(),
   severity: integer('severity').notNull(),
   description: text('description'),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+  updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
+});
+
+export const recipes = sqliteTable('recipes', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  title: text('title').notNull(),
+  instructions: text('instructions'),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+  updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
+});
+
+export const recipeIngredients = sqliteTable('recipe_ingredients', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  recipeId: integer('recipe_id').notNull().references(() => recipes.id, { onDelete: 'cascade' }),
+  qty: text('qty').notNull(),
+  item: text('item').notNull(),
+  orderIndex: integer('order_index').notNull(),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+  updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
+});
+
+export const recipeMealSlots = sqliteTable('recipe_meal_slots', {
+  recipeId: integer('recipe_id').notNull().references(() => recipes.id, { onDelete: 'cascade' }),
+  slotKey: text('slot_key', {
+    enum: ['BREAKFAST', 'SNACK_1', 'LUNCH', 'SNACK_2', 'DINNER', 'DESSERT', 'SUPPER']
+  }).notNull(),
+});
+
+export const weeklyPlans = sqliteTable('weekly_plans', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  key: text('key', { enum: ['THIS', 'NEXT'] }).notNull().unique(),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+  updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
+});
+
+export const weeklyPlanEntries = sqliteTable('weekly_plan_entries', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  planId: integer('plan_id').notNull().references(() => weeklyPlans.id, { onDelete: 'cascade' }),
+  dayIndex: integer('day_index').notNull(),
+  slotKey: text('slot_key', {
+    enum: ['BREAKFAST', 'SNACK_1', 'LUNCH', 'SNACK_2', 'DINNER', 'DESSERT', 'SUPPER']
+  }).notNull(),
+  recipeId: integer('recipe_id').references(() => recipes.id, { onDelete: 'set null' }),
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
   updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
 });
