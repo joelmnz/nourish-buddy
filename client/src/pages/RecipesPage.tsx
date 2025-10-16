@@ -319,36 +319,43 @@ export default function RecipesPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {recipes.map((recipe) => (
-                    <tr key={recipe.id} className="tr">
-                       <td className="td"><Link className="link" to={`/recipe/${recipe.id}`}>{recipe.title}</Link></td>
-                      <td className="td">
-                        <div className="flex" style={{ gap: '4px', flexWrap: 'wrap' }}>
-                          {recipe.slotKeys.map((key) => (
-                            <span key={key} className="badge">
-                              {key}
-                            </span>
-                          ))}
-                        </div>
-                      </td>
-                      <td className="td">
-                        <div className="flex" style={{ gap: '8px' }}>
-                          <button
-                            onClick={() => handleEditRecipe(recipe.id)}
-                            className="btn btn-ghost btn-sm"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDelete(recipe.id, recipe.title)}
-                            className="btn btn-ghost btn-sm"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+{recipes.map((recipe) => (
+  <tr
+    key={recipe.id}
+    className="tr"
+    style={{ cursor: 'pointer' }}
+    onClick={() => handleEditRecipe(recipe.id)}
+  >
+    <td className="td">
+      <Link className="link" to={`/recipe/${recipe.id}`} onClick={e => e.stopPropagation()}>{recipe.title}</Link>
+    </td>
+    <td className="td">
+      <div className="flex" style={{ gap: '4px', flexWrap: 'wrap' }}>
+        {recipe.slotKeys.map((key) => (
+          <span key={key} className="badge">
+            {key}
+          </span>
+        ))}
+      </div>
+    </td>
+    <td className="td" style={{ paddingTop: 0, paddingBottom: 0 }}>
+  <div className="flex row" style={{ gap: '4px', alignItems: 'center', justifyContent: 'flex-start' }}>
+    <button
+  onClick={e => { e.stopPropagation(); handleEditRecipe(recipe.id); }}
+  className="btn btn-ghost text-sm"
+>
+  Edit
+</button>
+<button
+  onClick={e => { e.stopPropagation(); handleDelete(recipe.id, recipe.title); }}
+  className="btn btn-danger text-sm"
+>
+  Delete
+</button>
+  </div>
+</td>
+  </tr>
+))}
                 </tbody>
               </table>
             </div>
