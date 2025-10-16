@@ -233,7 +233,7 @@ export default function SettingsPage() {
         )}
         <div className="space-y-3">
           {mealSlots.map((slot) => (
-            <div key={slot.slotKey} className="grid" style={{ gridTemplateColumns: '120px 1fr', gap: '12px' }}>
+            <div key={slot.slotKey} className="grid" style={{ gridTemplateColumns: '120px 1fr 1fr', gap: '12px' }}>
               <div>
                 <label className="block text-sm text-muted mb-2" htmlFor={`time-${slot.slotKey}`}>Time</label>
                 <input
@@ -252,6 +252,17 @@ export default function SettingsPage() {
                   value={slot.name}
                   onChange={(e) => updateSlot(slot.slotKey, 'name', e.target.value)}
                   placeholder="Meal name..."
+                  className="input"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-muted mb-2" htmlFor={`notes-${slot.slotKey}`}>Notes</label>
+                <input
+                  id={`notes-${slot.slotKey}`}
+                  type="text"
+                  value={slot.notes || ''}
+                  onChange={(e) => updateSlot(slot.slotKey, 'notes', e.target.value)}
+                  placeholder="Optional notes..."
                   className="input"
                 />
               </div>

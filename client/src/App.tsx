@@ -4,7 +4,6 @@ import { useAuth } from './hooks/useAuth';
 import LoginPage from './pages/LoginPage';
 import Layout from './components/Layout';
 import TodayPage from './pages/TodayPage';
-import MealPlanPage from './pages/MealPlanPage';
 import WeeklyPlannerPage from './pages/WeeklyPlannerPage';
 import RecipesPage from './pages/RecipesPage';
 import HistoryPage from './pages/HistoryPage';
@@ -38,7 +37,6 @@ function App() {
             }
           >
             <Route index element={<TodayPage />} />
-            <Route path="plan" element={<MealPlanPage />} />
             <Route path="planner" element={<WeeklyPlannerPage />} />
             <Route path="recipes" element={<RecipesPage />} />
             <Route path="recipe/:id" element={<ViewRecipePage />} />
