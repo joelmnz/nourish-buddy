@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 
 interface Recipe {
@@ -336,9 +336,7 @@ export default function RecipesPage() {
       }
     }}
   >
-    <td className="td">
-      <Link className="link" to={`/recipe/${recipe.id}`} onClick={e => e.stopPropagation()}>{recipe.title}</Link>
-    </td>
+    <td className="td">{recipe.title}</td>
     <td className="td">
       <div className="flex" style={{ gap: '4px', flexWrap: 'wrap' }}>
         {recipe.slotKeys.map((key) => (

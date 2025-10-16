@@ -1,6 +1,5 @@
 import { z } from 'zod';
-
-export const slotKeyEnum = z.enum(['BREAKFAST', 'SNACK_1', 'LUNCH', 'SNACK_2', 'DINNER', 'DESSERT', 'SUPPER']);
+import { slotKeyEnum } from '../../../shared/types.ts';
 
 export const planKeyEnum = z.enum(['THIS', 'NEXT']);
 
