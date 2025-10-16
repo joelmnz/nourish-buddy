@@ -91,20 +91,23 @@ export default function RecipesPage() {
       </div>
 
       <div className="card padded mb-4">
-        <div className="flex" style={{ gap: '8px' }}>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-            placeholder="Search recipes..."
-            className="input"
-            style={{ flex: 1 }}
-          />
-          <button onClick={handleSearch} className="btn btn-primary">
-            Search
-          </button>
-        </div>
+        <form onSubmit={(e) => { e.preventDefault(); handleSearch(); }} className="row gap-4">
+          <div style={{ flex: 1 }}>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+              placeholder="Search recipes..."
+              className="input"
+            />
+          </div>
+          <div className="row" style={{ alignItems: 'end' }}>
+            <button type="submit" className="btn btn-primary">
+              Search
+            </button>
+          </div>
+        </form>
       </div>
 
       {recipes.length === 0 ? (
