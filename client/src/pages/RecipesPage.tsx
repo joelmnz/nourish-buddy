@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 
 interface Recipe {
@@ -141,7 +141,7 @@ function RecipeForm({ recipe, onSave, onCancel }: RecipeFormProps) {
             </button>
           </div>
           {ingredients.map((ing, idx) => (
-            <div key={idx} className="flex mb-2" style={{ gap: '8px' }}>
+            <div key={idx} className="flex mb-2" style={{ gap: '8px', display: 'flex' }}>
               <input
                 type="text"
                 value={ing.qty}
@@ -203,6 +203,7 @@ function RecipeForm({ recipe, onSave, onCancel }: RecipeFormProps) {
 }
 
 export default function RecipesPage() {
+  const navigate = useNavigate();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -318,13 +319,22 @@ export default function RecipesPage() {
                     </th>
                   </tr>
                 </thead>
-                <tbody>
+                 <tbody>
 {recipes.map((recipe) => (
   <tr
     key={recipe.id}
     className="tr"
     style={{ cursor: 'pointer' }}
-    onClick={() => handleEditRecipe(recipe.id)}
+    tabIndex={0}
+    role="link"
+    aria-label={`View ${recipe.title}`}
+    onClick={() => navigate(`/recipe/${recipe.id}`)}
+    onKeyDown={(e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        navigate(`/recipe/${recipe.id}`);
+      }
+    }}
   >
     <td className="td">
       <Link className="link" to={`/recipe/${recipe.id}`} onClick={e => e.stopPropagation()}>{recipe.title}</Link>
