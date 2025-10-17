@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 import DaySelector from '../components/DaySelector';
@@ -24,6 +24,16 @@ interface MealSlot {
 
 const BASE_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
+function IconDots() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <circle cx="5" cy="12" r="1"/>
+      <circle cx="12" cy="12" r="1"/>
+      <circle cx="19" cy="12" r="1"/>
+    </svg>
+  );
+}
+
 export default function WeeklyPlannerPage() {
   const navigate = useNavigate();
   const [plans, setPlans] = useState<{ THIS: WeeklyPlan | null; NEXT: WeeklyPlan | null }>({ THIS: null, NEXT: null });
@@ -35,10 +45,26 @@ export default function WeeklyPlannerPage() {
   const [saving, setSaving] = useState(false);
   const [firstDayOfWeek, setFirstDayOfWeek] = useState<number>(0);
   const [selectedDayIndex, setSelectedDayIndex] = useState<number>(0);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    function onDocClick(e: MouseEvent) {
+      if (!menuRef.current) return;
+      if (menuRef.current.contains(e.target as Node)) return;
+      if (triggerRef.current?.contains(e.target as Node)) return;
+      setMenuOpen(false);
+    }
+    if (menuOpen) {
+      document.addEventListener('click', onDocClick);
+    }
+    return () => document.removeEventListener('click', onDocClick);
+  }, [menuOpen]);
 
   // Set selected day to current day of week on mount
   useEffect(() => {
@@ -203,53 +229,117 @@ export default function WeeklyPlannerPage() {
     <div>
       <h1 className="h1 mb-4">Weekly Meal Planner</h1>
 
-      <div className="card padded mb-4">
-        <div className="flex" style={{ gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
-          <button
-            onClick={() => setActiveTab('THIS')}
-            className={`btn ${activeTab === 'THIS' ? 'btn-primary' : 'btn-ghost'}`}
-          >
-            This Week
-          </button>
-          <button
-            onClick={() => setActiveTab('NEXT')}
-            className={`btn ${activeTab === 'NEXT' ? 'btn-primary' : 'btn-ghost'}`}
-          >
-            Next Week
-          </button>
-        </div>
-
-        <div className="flex" style={{ gap: '8px', flexWrap: 'wrap' }}>
-          <button onClick={() => handleShuffle('week')} className="btn btn-ghost">
-            🎲 Shuffle Week
-          </button>
-          <button onClick={handleClear} className="btn btn-ghost">
-            Clear
-          </button>
-          {activeTab === 'THIS' && (
-            <button onClick={handleCopyToNext} className="btn btn-ghost">
-              Copy to Next →
+      <div className="card padded mb-2">
+        <div className="planner-actions-mobile">
+          <div className="planner-week-select">
+            <button
+              onClick={() => setActiveTab('THIS')}
+              className={`btn ${activeTab === 'THIS' ? 'btn-primary' : 'btn-ghost'}`}
+            >
+              This
             </button>
-          )}
-          {activeTab === 'NEXT' && (
-            <button onClick={handleRollover} className="btn btn-ghost">
-              Set as Current
+            <button
+              onClick={() => setActiveTab('NEXT')}
+              className={`btn ${activeTab === 'NEXT' ? 'btn-primary' : 'btn-ghost'}`}
+            >
+              Next
             </button>
-          )}
-          <button
-            onClick={handleSave}
-            disabled={!hasChanges || saving}
-            className={`btn ${hasChanges && !saving ? 'btn-primary' : 'btn-ghost'}`}
-          >
-            {saving ? 'Saving...' : 'Save'}
-          </button>
-        </div>
-
-        {hasChanges && (
-          <div className="mt-3 text-sm" style={{ color: 'rgb(245, 158, 11)' }}>
-            You have unsaved changes
+            <button
+              onClick={handleSave}
+              disabled={!hasChanges || saving}
+              className={`btn ${hasChanges && !saving ? 'btn-primary' : 'btn-ghost'}`}
+              title="Save"
+            >
+              💾
+            </button>
+            <div className="overflow-menu" ref={menuRef}>
+              <button
+                ref={triggerRef}
+                className="overflow-trigger btn btn-ghost"
+                aria-haspopup="menu"
+                aria-expanded={menuOpen}
+                onClick={() => setMenuOpen((v) => !v)}
+                title="More actions"
+              >
+                <IconDots />
+              </button>
+              {menuOpen && (
+                <div className="menu-panel" role="menu">
+                  <button onClick={() => { handleShuffle('week'); setMenuOpen(false); }} role="menuitem" className="menu-item">
+                    🎲 Shuffle Week
+                  </button>
+                  <button onClick={() => { handleClear(); setMenuOpen(false); }} role="menuitem" className="menu-item">
+                    Clear
+                  </button>
+                  {activeTab === 'THIS' && (
+                    <button onClick={() => { handleCopyToNext(); setMenuOpen(false); }} role="menuitem" className="menu-item">
+                      Copy to Next →
+                    </button>
+                  )}
+                  {activeTab === 'NEXT' && (
+                    <button onClick={() => { handleRollover(); setMenuOpen(false); }} role="menuitem" className="menu-item">
+                      Set as Current
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
-        )}
+          {hasChanges && (
+            <div className="mt-3 text-sm" style={{ color: 'rgb(245, 158, 11)' }}>
+              You have unsaved changes
+            </div>
+          )}
+        </div>
+
+        <div className="planner-actions-desktop">
+          <div className="flex" style={{ gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
+            <button
+              onClick={() => setActiveTab('THIS')}
+              className={`btn ${activeTab === 'THIS' ? 'btn-primary' : 'btn-ghost'}`}
+            >
+              This Week
+            </button>
+            <button
+              onClick={() => setActiveTab('NEXT')}
+              className={`btn ${activeTab === 'NEXT' ? 'btn-primary' : 'btn-ghost'}`}
+            >
+              Next Week
+            </button>
+          </div>
+
+          <div className="flex" style={{ gap: '8px', flexWrap: 'wrap' }}>
+            <button onClick={() => handleShuffle('week')} className="btn btn-ghost">
+              🎲 Shuffle Week
+            </button>
+            <button onClick={handleClear} className="btn btn-ghost">
+              Clear
+            </button>
+            {activeTab === 'THIS' && (
+              <button onClick={handleCopyToNext} className="btn btn-ghost">
+                Copy to Next →
+              </button>
+            )}
+            {activeTab === 'NEXT' && (
+              <button onClick={handleRollover} className="btn btn-ghost">
+                Set as Current
+              </button>
+            )}
+            <button
+              onClick={handleSave}
+              disabled={!hasChanges || saving}
+              className={`btn ${hasChanges && !saving ? 'btn-primary' : 'btn-ghost'}`}
+            >
+              {saving ? 'Saving...' : 'Save'}
+            </button>
+          </div>
+
+          {hasChanges && (
+            <div className="mt-3 text-sm" style={{ color: 'rgb(245, 158, 11)' }}>
+              You have unsaved changes
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Mobile: per-day cards; Desktop: table */}

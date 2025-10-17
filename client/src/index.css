@@ -82,7 +82,7 @@ input, select { font: inherit; }
   .logout-desktop { display: inline-flex; }
 }
 
-.main { padding: 24px 0; }
+.main { padding: 12px 0; }
 
 /* Cards */
 .card {
@@ -91,7 +91,7 @@ input, select { font: inherit; }
   border-radius: var(--radius);
   box-shadow: var(--shadow);
 }
-.card.padded { padding: 24px; }
+.card.padded { padding: 12px; }
 .card + .card { margin-top: 16px; }
 
 .h1 { font-size: 28px; font-weight: 800; margin: 0 0 12px; }
@@ -131,6 +131,22 @@ input, select { font: inherit; }
 .th, .td { padding: 12px 14px; border-bottom: 1px solid var(--border); text-align: left; }
 .tr:hover { background: rgba(31, 41, 55, .4); }
 
+/* Planner actions responsive */
+.planner-actions-mobile { display: block; }
+.planner-actions-desktop { display: none; }
+.planner-week-select { display: flex; align-items: center; gap: 8px; justify-content: space-between; }
+.planner-week-select .btn { flex: 0 0 auto; min-width: 60px; padding: 8px 12px; font-size: 14px; }
+.planner-week-select .overflow-menu { position: relative; }
+.planner-week-select .overflow-trigger { width: 40px; height: 40px; padding: 0; display: inline-grid; place-items: center; }
+.planner-week-select .menu-panel { position: absolute; right: 0; top: 48px; min-width: 180px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow); padding: 6px; display: grid; z-index: 20; }
+.planner-week-select .menu-panel .menu-item { width: 100%; padding: 10px 12px; border-radius: 8px; color: var(--muted); background: transparent; border: 0; text-align: left; outline: none; cursor: pointer; }
+.planner-week-select .menu-panel .menu-item:hover, .planner-week-select .menu-panel .menu-item:focus-visible { background: rgba(31,41,55,.6); color: var(--text); }
+
+@media (min-width: 768px) {
+  .planner-actions-mobile { display: none; }
+  .planner-actions-desktop { display: block; }
+}
+
 /* Planner responsive */
 .planner-responsive { display: grid; gap: 16px; }
 .planner-cards { display: grid; gap: 12px; }
@@ -144,7 +160,7 @@ input, select { font: inherit; }
 .planner-slot-actions { display: flex; gap: 6px; }
 
 /* Day selector for mobile view */
-.day-selector { display: flex; justify-content: space-between; gap: 4px; padding: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 12px; }
+.day-selector { display: flex; justify-content: space-between; gap: 4px; padding: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
 .day-selector-btn { flex: 1; padding: 10px 8px; border-radius: 8px; font-weight: 600; font-size: 14px; background: transparent; color: var(--muted); border: 1px solid transparent; transition: all .2s ease; }
 .day-selector-btn:hover { background: rgba(31,41,55,.4); color: var(--text); }
 .day-selector-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
