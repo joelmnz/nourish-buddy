@@ -143,6 +143,12 @@ input, select { font: inherit; }
 .planner-slot-controls { display: grid; gap: 6px; }
 .planner-slot-actions { display: flex; gap: 6px; }
 
+/* Day selector for mobile view */
+.day-selector { display: flex; justify-content: space-between; gap: 4px; padding: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 12px; }
+.day-selector-btn { flex: 1; padding: 10px 8px; border-radius: 8px; font-weight: 600; font-size: 14px; background: transparent; color: var(--muted); border: 1px solid transparent; transition: all .2s ease; }
+.day-selector-btn:hover { background: rgba(31,41,55,.4); color: var(--text); }
+.day-selector-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
 /* Desktop table only at >=1024px */
 .planner-table-wrap { display: none; overflow-x: auto; }
 @media (min-width: 1024px) {

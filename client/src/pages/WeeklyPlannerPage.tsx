@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
+import DaySelector from '../components/DaySelector';
 
 interface WeeklyPlan {
   id: number;
@@ -33,10 +34,20 @@ export default function WeeklyPlannerPage() {
   const [hasChanges, setHasChanges] = useState(false);
   const [saving, setSaving] = useState(false);
   const [firstDayOfWeek, setFirstDayOfWeek] = useState<number>(0);
+  const [selectedDayIndex, setSelectedDayIndex] = useState<number>(0);
 
   useEffect(() => {
     loadData();
   }, []);
+
+  // Set selected day to current day of week on mount
+  useEffect(() => {
+    const today = new Date();
+    const currentDayOfWeek = today.getDay(); // 0 = Sunday, 6 = Saturday
+    // Calculate the index in the rotated days array
+    const rotatedIndex = (currentDayOfWeek - firstDayOfWeek + 7) % 7;
+    setSelectedDayIndex(rotatedIndex);
+  }, [firstDayOfWeek]);
 
   const rotatedDays = (() => {
     const start = firstDayOfWeek % 7;
@@ -244,8 +255,19 @@ export default function WeeklyPlannerPage() {
       {/* Mobile: per-day cards; Desktop: table */}
       <div className="planner-responsive">
         <div className="planner-cards">
-          {rotatedDays.map((day: string, rotatedIdx: number) => {
+          {/* Day selector for mobile - tabs style */}
+          <DaySelector
+            days={rotatedDays}
+            selectedDayIndex={selectedDayIndex}
+            onDaySelect={setSelectedDayIndex}
+          />
+
+          {/* Show only the selected day's card */}
+          {(() => {
+            const rotatedIdx = selectedDayIndex;
             const storageIdx = toStorageDayIdx(rotatedIdx);
+            const day = rotatedDays[rotatedIdx];
+            
             return (
               <div key={rotatedIdx} className="card planner-card">
                 <div className="planner-card-header">
@@ -304,7 +326,7 @@ export default function WeeklyPlannerPage() {
                 </div>
               </div>
             );
-          })}
+          })()}
         </div>
 
         <div className="planner-table-wrap card">
