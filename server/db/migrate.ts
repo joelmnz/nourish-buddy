@@ -70,6 +70,14 @@ export async function runMigrations() {
     )
   `);
 
+  // Backfill: ensure column exists for existing databases created before this field
+  const settingsCols = sqlite.query(`PRAGMA table_info('settings')`).all() as Array<{ name: string }>;
+  const hasStartingDate = settingsCols.some((c) => c.name === 'starting_meal_plan_date');
+  if (!hasStartingDate) {
+    sqlite.run(`ALTER TABLE settings ADD COLUMN starting_meal_plan_date TEXT`);
+    console.log('✓ Migrated: added starting_meal_plan_date to settings');
+  }
+
   sqlite.run(`
     CREATE TABLE IF NOT EXISTS meal_plan_slots (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
