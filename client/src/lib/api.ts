@@ -70,15 +70,16 @@ export const api = {
 
   settings: {
     async get() {
-      const data = await request<{ reminders_enabled: boolean; time_format: '12' | '24' }>('/api/settings');
-      return { remindersEnabled: data.reminders_enabled, timeFormat: data.time_format };
+      const data = await request<{ reminders_enabled: boolean; time_format: '12' | '24'; first_day_of_week: number }>('/api/settings');
+      return { remindersEnabled: data.reminders_enabled, timeFormat: data.time_format, firstDayOfWeek: data.first_day_of_week };
     },
-    async update(data: Partial<{ remindersEnabled: boolean; timeFormat: '12' | '24' }>) {
+    async update(data: Partial<{ remindersEnabled: boolean; timeFormat: '12' | '24'; firstDayOfWeek: number }>) {
       return request('/api/settings', {
         method: 'PUT',
         body: JSON.stringify({
           ...(data.remindersEnabled !== undefined ? { reminders_enabled: data.remindersEnabled } : {}),
           ...(data.timeFormat ? { time_format: data.timeFormat } : {}),
+          ...(data.firstDayOfWeek !== undefined ? { first_day_of_week: data.firstDayOfWeek } : {}),
         }),
       });
     },
@@ -267,6 +268,108 @@ export const api = {
     },
     async delete(id: number) {
       return request(`/api/issues/${id}`, { method: 'DELETE' });
+    },
+  },
+
+  recipes: {
+    async list(query?: string) {
+      const res = await request<{ recipes: Array<{ id: number; title: string; slot_keys: string[] }> }>(`/api/recipes${query ? `?query=${encodeURIComponent(query)}` : ''}`);
+      return res.recipes.map((r) => ({
+        id: r.id,
+        title: r.title,
+        slotKeys: r.slot_keys,
+      }));
+    },
+    async get(id: number) {
+      const res = await request<{ id: number; title: string; slot_keys: string[]; ingredients: Array<{ qty: string; item: string }>; instructions: string | null }>(`/api/recipes/${id}`);
+      return {
+        id: res.id,
+        title: res.title,
+        slotKeys: res.slot_keys,
+        ingredients: res.ingredients,
+        instructions: res.instructions,
+      };
+    },
+    async create(data: { title: string; slotKeys: string[]; ingredients: Array<{ qty: string; item: string }>; instructions?: string | null }) {
+      return request<{ id: number }>('/api/recipes', {
+        method: 'POST',
+        body: JSON.stringify({
+          title: data.title,
+          slot_keys: data.slotKeys,
+          ingredients: data.ingredients,
+          instructions: data.instructions,
+        }),
+      });
+    },
+    async update(id: number, data: { title?: string; slotKeys?: string[]; ingredients?: Array<{ qty: string; item: string }>; instructions?: string | null }) {
+      return request(`/api/recipes/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          ...(data.title !== undefined ? { title: data.title } : {}),
+          ...(data.slotKeys !== undefined ? { slot_keys: data.slotKeys } : {}),
+          ...(data.ingredients !== undefined ? { ingredients: data.ingredients } : {}),
+          ...(data.instructions !== undefined ? { instructions: data.instructions } : {}),
+        }),
+      });
+    },
+    async delete(id: number) {
+      return request(`/api/recipes/${id}`, { method: 'DELETE' });
+    },
+  },
+
+  weeklyPlans: {
+    async get() {
+      const res = await request<{
+        THIS: { id: number; key: string; entries: Array<{ day_index: number; slot_key: string; recipe_id: number | null; recipe_title: string | null }> };
+        NEXT: { id: number; key: string; entries: Array<{ day_index: number; slot_key: string; recipe_id: number | null; recipe_title: string | null }> };
+      }>('/api/weekly-plans');
+      return {
+        THIS: {
+          id: res.THIS.id,
+          key: res.THIS.key,
+          entries: res.THIS.entries.map((e) => ({
+            dayIndex: e.day_index,
+            slotKey: e.slot_key,
+            recipeId: e.recipe_id,
+            recipeTitle: e.recipe_title,
+          })),
+        },
+        NEXT: {
+          id: res.NEXT.id,
+          key: res.NEXT.key,
+          entries: res.NEXT.entries.map((e) => ({
+            dayIndex: e.day_index,
+            slotKey: e.slot_key,
+            recipeId: e.recipe_id,
+            recipeTitle: e.recipe_title,
+          })),
+        },
+      };
+    },
+    async update(planKey: 'THIS' | 'NEXT', entries: Array<{ dayIndex: number; slotKey: string; recipeId: number | null }>) {
+      return request(`/api/weekly-plans/${planKey}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          entries: entries.map((e) => ({
+            day_index: e.dayIndex,
+            slot_key: e.slotKey,
+            recipe_id: e.recipeId,
+          })),
+        }),
+      });
+    },
+    async shuffle(planKey: 'THIS' | 'NEXT', scope: 'week' | 'day' | 'cell', dayIndex?: number, slotKey?: string) {
+      return request(`/api/weekly-plans/${planKey}/shuffle`, {
+        method: 'POST',
+        body: JSON.stringify({
+          scope,
+          ...(dayIndex !== undefined ? { day_index: dayIndex } : {}),
+          ...(slotKey ? { slot_key: slotKey } : {}),
+        }),
+      });
+    },
+    async rollover() {
+      return request('/api/weekly-plans/rollover', { method: 'POST' });
     },
   },
 };

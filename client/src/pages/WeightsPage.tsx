@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { api } from '../lib/api';
 
 import WeightChart from '../components/WeightChart';
@@ -9,6 +9,10 @@ export default function WeightsPage() {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [weight, setWeight] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [editingDate, setEditingDate] = useState<string | null>(null);
+  
+  const formRef = useRef<HTMLDivElement>(null);
+  const weightInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     loadWeights();
@@ -29,17 +33,41 @@ export default function WeightsPage() {
     e.preventDefault();
     if (!weight) return;
 
+    const kg = parseFloat(weight);
+    if (isNaN(kg) || kg <= 0 || kg > 500) {
+      alert('Please enter a valid weight between 0 and 500 kg');
+      return;
+    }
+
     setSubmitting(true);
     try {
-      await api.weights.create({ date, kg: parseFloat(weight) });
+      await api.weights.create({ date, kg });
       await loadWeights();
       setWeight('');
       setDate(new Date().toISOString().split('T')[0]);
+      setEditingDate(null);
     } catch (error) {
       console.error('Failed to save weight:', error);
     } finally {
       setSubmitting(false);
     }
+  }
+
+  function handleEdit(w: { date: string; kg: number }) {
+    setEditingDate(w.date);
+    setDate(w.date);
+    setWeight(w.kg.toString());
+    
+    formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setTimeout(() => {
+      weightInputRef.current?.focus();
+    }, 300);
+  }
+
+  function handleCancelEdit() {
+    setEditingDate(null);
+    setDate(new Date().toISOString().split('T')[0]);
+    setWeight('');
   }
 
   async function deleteWeight(date: string) {
@@ -48,6 +76,9 @@ export default function WeightsPage() {
     try {
       await api.weights.delete(date);
       setWeights((prev) => prev.filter((w) => w.date !== date));
+      if (editingDate === date) {
+        handleCancelEdit();
+      }
     } catch (error) {
       console.error('Failed to delete weight:', error);
     }
@@ -61,8 +92,8 @@ export default function WeightsPage() {
     <div>
       <h1 className="h1 mb-4">Weight History</h1>
 
-      <div className="card padded mb-4">
-        <h2 className="h2">Add/Update Weight</h2>
+      <div ref={formRef} className="card padded mb-4">
+        <h2 className="h2">{editingDate ? 'Edit Weight' : 'Add/Update Weight'}</h2>
         <form onSubmit={handleSubmit} className="row gap-4">
           <div style={{ flex: 1 }}>
             <label htmlFor="date" className="text-sm text-muted mb-2">Date</label>
@@ -78,9 +109,12 @@ export default function WeightsPage() {
           <div style={{ flex: 1 }}>
              <label htmlFor="weight" className="text-sm text-muted mb-2">Weight (kg)</label>
             <input
+              ref={weightInputRef}
               id="weight"
               type="number"
               step="0.1"
+              min="0.1"
+              max="500"
               value={weight}
               onChange={(e) => setWeight(e.target.value)}
               required
@@ -88,10 +122,15 @@ export default function WeightsPage() {
               className="input"
             />
           </div>
-          <div className="row" style={{ alignItems: 'end' }}>
+          <div className="row" style={{ alignItems: 'end', gap: '0.5rem' }}>
             <button type="submit" disabled={submitting} className={`btn ${submitting ? 'btn-ghost' : 'btn-primary'}`}>
-              {submitting ? 'Saving...' : 'Save'}
+              {submitting ? 'Saving...' : editingDate ? 'Update' : 'Save'}
             </button>
+            {editingDate && (
+              <button type="button" onClick={handleCancelEdit} className="btn btn-ghost">
+                Cancel
+              </button>
+            )}
           </div>
         </form>
       </div>
@@ -132,7 +171,19 @@ export default function WeightsPage() {
                     </td>
                      <td className="td">{w.kg}</td>
                     <td className="td text-right">
-                      <button onClick={() => deleteWeight(w.date)} className="btn btn-danger text-sm">
+                      <button 
+                        onClick={() => handleEdit(w)} 
+                        disabled={submitting}
+                        className="btn btn-primary text-sm"
+                        style={{ marginRight: '0.5rem' }}
+                      >
+                        Edit
+                      </button>
+                      <button 
+                        onClick={() => deleteWeight(w.date)} 
+                        disabled={submitting}
+                        className="btn btn-danger text-sm"
+                      >
                         Delete
                       </button>
                     </td>

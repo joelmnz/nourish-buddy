@@ -1,92 +1,191 @@
-import { Outlet, NavLink } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
 function IconToday() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <rect x="3" y="4" width="18" height="18" rx="2"/>
       <path d="M16 2v4M8 2v4M3 10h18"/>
     </svg>
   );
 }
-function IconPlan() {
+function IconPlanner() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M3 5h18M3 12h18M3 19h18"/>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <rect x="3" y="4" width="18" height="18" rx="2"/>
+      <path d="M16 2v4M8 2v4M3 10h18"/>
+      <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/>
     </svg>
   );
 }
-function IconHistory() {
+function IconRecipes() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M3 3v5h5"/>
-      <path d="M3.05 13A9 9 0 1 0 8 4.6"/>
-      <path d="M12 7v5l3 3"/>
-    </svg>
-  );
-}
-function IconWeights() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M6 14V6a2 2 0 0 1 2-2h8"/>
-      <path d="M6 18h12"/>
-      <rect x="2" y="14" width="4" height="6" rx="1"/>
-      <rect x="18" y="14" width="4" height="6" rx="1"/>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2"/>
+      <path d="M7 2v20"/>
+      <path d="M21 15V2v0a5 5 0 00-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/>
     </svg>
   );
 }
 function IconIssues() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <circle cx="12" cy="12" r="10"/>
-      <path d="M12 8v4"/>
-      <path d="M12 16h.01"/>
+      <path d="M12 8v4M12 16h.01"/>
     </svg>
   );
 }
-function IconSettings() {
+function IconDots() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
-      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.03A1.65 1.65 0 0 0 9 3.09V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.03a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.03c0 .62.22 1.22.62 1.69.4.47.62 1.07.62 1.69z"/>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <circle cx="5" cy="12" r="1"/>
+      <circle cx="12" cy="12" r="1"/>
+      <circle cx="19" cy="12" r="1"/>
     </svg>
   );
 }
 
 export default function Layout() {
   const { logout } = useAuth();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const location = useLocation();
+
+  useEffect(() => {
+    // Close overflow menu on navigation
+    setMenuOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    function onDocClick(e: MouseEvent) {
+      if (!menuRef.current) return;
+      if (menuRef.current.contains(e.target as Node)) return;
+      setMenuOpen(false);
+    }
+    if (menuOpen) {
+      document.addEventListener('click', onDocClick);
+    }
+    return () => document.removeEventListener('click', onDocClick);
+  }, [menuOpen]);
+
+  useEffect(() => {
+    // When menu opens, move focus to first item
+    if (menuOpen) {
+      const first = menuRef.current?.querySelector<HTMLAnchorElement | HTMLButtonElement>('.menu-panel a, .menu-panel .menu-logout');
+      first?.focus();
+    }
+  }, [menuOpen]);
+
+  function onTriggerKeyDown(e: React.KeyboardEvent<HTMLButtonElement>) {
+    if (e.key === 'ArrowDown' && !menuOpen) {
+      e.preventDefault();
+      setMenuOpen(true);
+    } else if (e.key === 'Escape' && menuOpen) {
+      e.preventDefault();
+      setMenuOpen(false);
+      triggerRef.current?.focus();
+    }
+  }
+
+  function onMenuKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
+    const items = menuRef.current?.querySelectorAll<HTMLAnchorElement | HTMLButtonElement>('.menu-panel a, .menu-panel .menu-logout');
+    if (!items || items.length === 0) return;
+
+    const currentIndex = Array.from(items).findIndex((el) => el === document.activeElement);
+
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      setMenuOpen(false);
+      triggerRef.current?.focus();
+      return;
+    }
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      const nextIndex = currentIndex >= 0 ? (currentIndex + 1) % items.length : 0;
+      items[nextIndex].focus();
+      return;
+    }
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      const prevIndex = currentIndex >= 0 ? (currentIndex - 1 + items.length) % items.length : items.length - 1;
+      items[prevIndex].focus();
+      return;
+    }
+    if (e.key === 'Home') {
+      e.preventDefault();
+      items[0].focus();
+      return;
+    }
+    if (e.key === 'End') {
+      e.preventDefault();
+      items[items.length - 1].focus();
+      return;
+    }
+  }
 
   return (
     <div className="app">
       <nav className="topbar">
         <div className="container topbar-inner">
-          <div className="row">
-            <div className="brand"><NavLink to="/">Nourish Buddy</NavLink></div>
-            <div className="nav" aria-label="Primary">
-              <NavLink to="/" end className={({ isActive }) => isActive ? 'active' : ''}>Today</NavLink>
-              <NavLink to="/plan" className={({ isActive }) => isActive ? 'active' : ''}>Meal Plan</NavLink>
-              <NavLink to="/history" className={({ isActive }) => isActive ? 'active' : ''}>History</NavLink>
-              <NavLink to="/weights" className={({ isActive }) => isActive ? 'active' : ''}>Weights</NavLink>
-              <NavLink to="/issues" className={({ isActive }) => isActive ? 'active' : ''}>Issues</NavLink>
-              <NavLink to="/settings" className={({ isActive }) => isActive ? 'active' : ''}>Settings</NavLink>
+          <div className="brand"><NavLink to="/">Nourish Buddy</NavLink></div>
+
+          {/* Mobile icon nav */}
+          <div className="mobile-nav" aria-label="Primary navigation">
+            <NavLink to="/" end aria-label="Today" title="Today" className={({ isActive }) => isActive ? 'active' : ''}><IconToday /></NavLink>
+            <NavLink to="/planner" aria-label="Planner" title="Planner" className={({ isActive }) => isActive ? 'active' : ''}><IconPlanner /></NavLink>
+            <NavLink to="/recipes" aria-label="Recipes" title="Recipes" className={({ isActive }) => isActive ? 'active' : ''}><IconRecipes /></NavLink>
+            <NavLink to="/issues" aria-label="Issues" title="Issues" className={({ isActive }) => isActive ? 'active' : ''}><IconIssues /></NavLink>
+            <div className="overflow-menu" ref={menuRef}>
+              <button
+                ref={triggerRef}
+                id="overflow-trigger"
+                className="overflow-trigger"
+                aria-haspopup="menu"
+                aria-expanded={menuOpen}
+                aria-controls="overflow-menu-panel"
+                onKeyDown={onTriggerKeyDown}
+                onClick={() => setMenuOpen((v) => !v)}
+                title="More"
+              >
+                <IconDots />
+              </button>
+              {menuOpen && (
+                <div
+                  id="overflow-menu-panel"
+                  className="menu-panel"
+                  role="menu"
+                  aria-labelledby="overflow-trigger"
+                  onKeyDown={onMenuKeyDown}
+                >
+                  <NavLink to="/history" role="menuitem">History</NavLink>
+                  <NavLink to="/weights" role="menuitem">Weights</NavLink>
+                  <NavLink to="/settings" role="menuitem">Settings</NavLink>
+                  <button onClick={logout} role="menuitem" className="menu-logout">Logout</button>
+                </div>
+              )}
             </div>
           </div>
-          <button onClick={logout} className="btn btn-ghost">Logout</button>
+
+          {/* Desktop text nav */}
+          <div className="nav" aria-label="Primary">
+            <NavLink to="/" end className={({ isActive }) => isActive ? 'active' : ''}>Today</NavLink>
+            <NavLink to="/planner" className={({ isActive }) => isActive ? 'active' : ''}>Planner</NavLink>
+            <NavLink to="/recipes" className={({ isActive }) => isActive ? 'active' : ''}>Recipes</NavLink>
+            <NavLink to="/history" className={({ isActive }) => isActive ? 'active' : ''}>History</NavLink>
+            <NavLink to="/weights" className={({ isActive }) => isActive ? 'active' : ''}>Weights</NavLink>
+            <NavLink to="/issues" className={({ isActive }) => isActive ? 'active' : ''}>Issues</NavLink>
+            <NavLink to="/settings" className={({ isActive }) => isActive ? 'active' : ''}>Settings</NavLink>
+          </div>
+          <button onClick={logout} className="btn btn-ghost logout-desktop">Logout</button>
         </div>
       </nav>
 
       <main className="container main">
         <Outlet />
       </main>
-
-      <div className="bottom-nav" aria-label="Mobile navigation">
-        <NavLink to="/" end className={({ isActive }) => isActive ? 'active' : ''} title="Today"><IconToday /></NavLink>
-        <NavLink to="/plan" className={({ isActive }) => isActive ? 'active' : ''} title="Meal Plan"><IconPlan /></NavLink>
-        <NavLink to="/history" className={({ isActive }) => isActive ? 'active' : ''} title="History"><IconHistory /></NavLink>
-        <NavLink to="/weights" className={({ isActive }) => isActive ? 'active' : ''} title="Weights"><IconWeights /></NavLink>
-        <NavLink to="/issues" className={({ isActive }) => isActive ? 'active' : ''} title="Issues"><IconIssues /></NavLink>
-        <NavLink to="/settings" className={({ isActive }) => isActive ? 'active' : ''} title="Settings"><IconSettings /></NavLink>
-      </div>
     </div>
   );
 }

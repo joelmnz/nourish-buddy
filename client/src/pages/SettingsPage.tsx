@@ -15,14 +15,17 @@ function urlBase64ToUint8Array(base64String?: string) {
 }
 
 export default function SettingsPage() {
-  const [settings, setSettings] = useState<{ remindersEnabled: boolean; timeFormat: TimeFormat } | null>(null);
+  const [settings, setSettings] = useState<{ remindersEnabled: boolean; timeFormat: TimeFormat; firstDayOfWeek: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [exporting, setExporting] = useState<'meals' | 'weights' | null>(null);
   const [testingPush, setTestingPush] = useState(false);
+  const [mealSlots, setMealSlots] = useState<Array<{ slotKey: string; orderIndex: number; time24h: string; name: string; notes: string | null }>>([]);
+  const [slotChanges, setSlotChanges] = useState(false);
 
   useEffect(() => {
     loadSettings();
+    loadMealSlots();
   }, []);
 
   async function loadSettings() {
@@ -36,23 +39,60 @@ export default function SettingsPage() {
     }
   }
 
-  async function updateSetting(key: keyof { remindersEnabled: boolean; timeFormat: TimeFormat }, value: boolean) {
+  async function loadMealSlots() {
+    try {
+      const data = await api.mealPlan.get();
+      setMealSlots(data);
+    } catch (error) {
+      console.error('Failed to load meal slots:', error);
+    }
+  }
+
+  async function updateSetting(key: keyof { remindersEnabled: boolean; timeFormat: TimeFormat; firstDayOfWeek: number }, value: boolean | string | number | null) {
     if (!settings) return;
 
-    const updated = { ...settings, [key]: value };
+    const updated = { ...settings };
+    if (key === 'remindersEnabled') updated.remindersEnabled = value as boolean;
+    if (key === 'timeFormat') updated.timeFormat = (value ? '24' : '12') as TimeFormat;
+    if (key === 'firstDayOfWeek') updated.firstDayOfWeek = value as number;
+
     setSettings(updated);
     setSaving(true);
 
     try {
       if (key === 'remindersEnabled') {
-        await api.settings.update({ remindersEnabled: value });
+        await api.settings.update({ remindersEnabled: value as boolean });
       }
       if (key === 'timeFormat') {
         await api.settings.update({ timeFormat: value ? '24' : '12' });
       }
+      if (key === 'firstDayOfWeek') {
+        await api.settings.update({ firstDayOfWeek: value as number });
+      }
     } catch (error) {
       console.error('Failed to update setting:', error);
       setSettings(settings);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function updateSlot(slotKey: string, field: 'time24h' | 'name' | 'notes', value: string) {
+    setMealSlots((prev) =>
+      prev.map((item) =>
+        item.slotKey === slotKey ? { ...item, [field]: value } : item
+      )
+    );
+    setSlotChanges(true);
+  }
+
+  async function saveMealSlots() {
+    setSaving(true);
+    try {
+      await api.mealPlan.update(mealSlots);
+      setSlotChanges(false);
+    } catch (error) {
+      console.error('Failed to save meal slots:', error);
     } finally {
       setSaving(false);
     }
@@ -128,93 +168,162 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="max-w-2xl">
+    <div>
       <h1 className="h1 mb-4">Settings</h1>
 
-      <div className="card">
-        <div className="padded">
-          <h2 className="h2">Preferences</h2>
-          <div className="mt-3">
-            <div className="space-between">
-              <div>
-                <div className="font-medium">Reminders</div>
-                <div className="text-sm text-muted">Enable meal time reminders</div>
-              </div>
-              <button
-                 onClick={() => updateSetting('remindersEnabled', !settings.remindersEnabled)}
-                className="toggle-btn"
-                aria-label="Toggle reminders"
-              >
-                 <div className={`toggle ${settings.remindersEnabled ? 'on' : ''}`}>
-                  <div className="toggle-knob" />
-                </div>
-              </button>
-            </div>
-
-            <div className="space-between mt-3">
-              <div>
-                <div className="font-medium">24-Hour Time</div>
-                <div className="text-sm text-muted">Use 24-hour time format</div>
-              </div>
-              <button
-                 onClick={() => updateSetting('timeFormat', settings.timeFormat === '12')}
-                className="toggle-btn"
-                aria-label="Toggle 24-hour time"
-              >
-                 <div className={`toggle ${settings.timeFormat === '24' ? 'on' : ''}`}>
-                  <div className="toggle-knob" />
-                </div>
-              </button>
-            </div>
+      <div className="card padded mb-4">
+        <h2 className="h2">Preferences</h2>
+        <div className="space-between mt-3">
+          <div>
+            <div className="font-medium">Reminders</div>
+            <div className="text-sm text-muted">Enable meal time reminders</div>
           </div>
-          {saving && <div className="mt-3 text-sm" style={{ color: 'rgb(74, 222, 128)' }}>Saving...</div>}
-        </div>
-
-        <div className="padded">
-          <h2 className="h2">Notifications</h2>
           <button
-            onClick={testNotification}
-            disabled={testingPush}
-            className={`btn ${testingPush ? 'btn-ghost' : 'btn-primary'}`}
+            onClick={() => updateSetting('remindersEnabled', !settings.remindersEnabled)}
+            className="toggle-btn"
+            aria-label="Toggle reminders"
           >
-            {testingPush ? 'Testing...' : 'Test Notification'}
+            <div className={`toggle ${settings.remindersEnabled ? 'on' : ''}`}>
+              <div className="toggle-knob" />
+            </div>
           </button>
-          <p className="mt-2 text-sm text-muted">
-            This will request notification permissions and send a test notification
-          </p>
         </div>
 
-        <div className="padded">
-          <h2 className="h2">Export Data</h2>
-          <div className="mt-3">
-            <div className="space-between">
-              <div>
-                <div className="font-medium">Meal History</div>
-                <div className="text-sm text-muted">Export all meal logs to CSV</div>
-              </div>
-              <button
-                onClick={() => exportData('meals')}
-                disabled={exporting === 'meals'}
-                className={`btn ${exporting === 'meals' ? 'btn-ghost' : 'btn-primary'}`}
-              >
-                {exporting === 'meals' ? 'Exporting...' : 'Export'}
-              </button>
-            </div>
-
-            <div className="space-between mt-3">
-              <div>
-                <div className="font-medium">Weight History</div>
-                <div className="text-sm text-muted">Export all weight entries to CSV</div>
-              </div>
-              <button
-                onClick={() => exportData('weights')}
-                disabled={exporting === 'weights'}
-                className={`btn ${exporting === 'weights' ? 'btn-ghost' : 'btn-primary'}`}
-              >
-                {exporting === 'weights' ? 'Exporting...' : 'Export'}
-              </button>
-            </div>
+        <div className="space-between mt-3">
+          <div>
+            <div className="font-medium">24-Hour Time</div>
+            <div className="text-sm text-muted">Use 24-hour time format</div>
           </div>
+          <button
+            onClick={() => updateSetting('timeFormat', settings.timeFormat === '12')}
+            className="toggle-btn"
+            aria-label="Toggle 24-hour time"
+          >
+            <div className={`toggle ${settings.timeFormat === '24' ? 'on' : ''}`}>
+              <div className="toggle-knob" />
+            </div>
+          </button>
+        </div>
+
+        <div className="mt-3">
+          <label htmlFor="firstDayOfWeek" className="block text-sm text-muted mb-2">
+            First Day Of Week
+          </label>
+          <div className="text-sm text-muted mb-2">Controls the start of the week in the planner</div>
+          <select
+            id="firstDayOfWeek"
+            value={settings.firstDayOfWeek}
+            onChange={(e) => updateSetting('firstDayOfWeek', parseInt(e.target.value))}
+            className="input"
+          >
+            <option value={0}>Sunday</option>
+            <option value={1}>Monday</option>
+            <option value={2}>Tuesday</option>
+            <option value={3}>Wednesday</option>
+            <option value={4}>Thursday</option>
+            <option value={5}>Friday</option>
+            <option value={6}>Saturday</option>
+          </select>
+        </div>
+        {saving && <div className="mt-3 text-sm" style={{ color: 'rgb(74, 222, 128)' }}>Saving...</div>}
+      </div>
+
+      <div className="card padded mb-4">
+        <div className="space-between mb-3">
+          <h2 className="h2">Meal Times</h2>
+          <button
+            onClick={saveMealSlots}
+            disabled={!slotChanges || saving}
+            className={`btn ${slotChanges && !saving ? 'btn-primary' : 'btn-ghost'}`}
+          >
+            {saving ? 'Saving...' : 'Save Changes'}
+          </button>
+        </div>
+        {slotChanges && (
+          <div className="mb-3 text-sm" style={{ color: 'rgb(245, 158, 11)' }}>You have unsaved changes</div>
+        )}
+        <div className="space-y-3">
+          {mealSlots.map((slot) => (
+            <div key={slot.slotKey} className="grid" style={{ gridTemplateColumns: '120px 1fr 1fr', gap: '12px' }}>
+              <div>
+                <label className="block text-sm text-muted mb-2" htmlFor={`time-${slot.slotKey}`}>Time</label>
+                <input
+                  id={`time-${slot.slotKey}`}
+                  type="time"
+                  value={slot.time24h}
+                  onChange={(e) => updateSlot(slot.slotKey, 'time24h', e.target.value)}
+                  className="input"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-muted mb-2" htmlFor={`name-${slot.slotKey}`}>Name</label>
+                <input
+                  id={`name-${slot.slotKey}`}
+                  type="text"
+                  value={slot.name}
+                  onChange={(e) => updateSlot(slot.slotKey, 'name', e.target.value)}
+                  placeholder="Meal name..."
+                  className="input"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-muted mb-2" htmlFor={`notes-${slot.slotKey}`}>Notes</label>
+                <input
+                  id={`notes-${slot.slotKey}`}
+                  type="text"
+                  value={slot.notes || ''}
+                  onChange={(e) => updateSlot(slot.slotKey, 'notes', e.target.value)}
+                  placeholder="Optional notes..."
+                  className="input"
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="card padded mb-4">
+        <h2 className="h2">Notifications</h2>
+        <button
+          onClick={testNotification}
+          disabled={testingPush}
+          className={`btn mt-3 ${testingPush ? 'btn-ghost' : 'btn-primary'}`}
+        >
+          {testingPush ? 'Testing...' : 'Test Notification'}
+        </button>
+        <p className="mt-2 text-sm text-muted">
+          This will request notification permissions and send a test notification
+        </p>
+      </div>
+
+      <div className="card padded mb-4">
+        <h2 className="h2">Export Data</h2>
+        <div className="space-between mt-3">
+          <div>
+            <div className="font-medium">Meal History</div>
+            <div className="text-sm text-muted">Export all meal logs to CSV</div>
+          </div>
+          <button
+            onClick={() => exportData('meals')}
+            disabled={exporting === 'meals'}
+            className={`btn ${exporting === 'meals' ? 'btn-ghost' : 'btn-primary'}`}
+          >
+            {exporting === 'meals' ? 'Exporting...' : 'Export'}
+          </button>
+        </div>
+
+        <div className="space-between mt-3">
+          <div>
+            <div className="font-medium">Weight History</div>
+            <div className="text-sm text-muted">Export all weight entries to CSV</div>
+          </div>
+          <button
+            onClick={() => exportData('weights')}
+            disabled={exporting === 'weights'}
+            className={`btn ${exporting === 'weights' ? 'btn-ghost' : 'btn-primary'}`}
+          >
+            {exporting === 'weights' ? 'Exporting...' : 'Export'}
+          </button>
         </div>
       </div>
     </div>

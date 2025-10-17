@@ -17,6 +17,8 @@ import { statsRoutes } from './routes/stats.ts';
 import { exportRoutes } from './routes/export.ts';
 import { pushRoutes } from './routes/push.ts';
 import { issuesRoutes } from './routes/issues.ts';
+import { recipesRoutes } from './routes/recipes.ts';
+import { weeklyPlansRoutes } from './routes/weekly-plans.ts';
 import { runMigrations } from './db/migrate.ts';
 import { cleanupExpiredSessions } from './services/session.ts';
 import { initializeScheduler } from './services/scheduler.ts';
@@ -41,6 +43,8 @@ app.get('/health', (c) => c.json({ status: 'ok', timestamp: new Date().toISOStri
 app.route('/api/auth', authRoutes);
 app.route('/api/settings', settingsRoutes);
 app.route('/api/meal-plan', mealPlanRoutes);
+app.route('/api/recipes', recipesRoutes);
+app.route('/api/weekly-plans', weeklyPlansRoutes);
 app.route('/api/today', todayRoutes);
 app.route('/api/history', historyRoutes);
 app.route('/api/weights', weightsRoutes);

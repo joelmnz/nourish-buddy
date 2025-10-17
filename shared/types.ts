@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 export const SLOT_KEYS = [
   'BREAKFAST',
   'SNACK_1',
@@ -9,6 +11,8 @@ export const SLOT_KEYS = [
 ] as const;
 
 export type SlotKey = typeof SLOT_KEYS[number];
+
+export const slotKeyEnum = z.enum(SLOT_KEYS);
 
 export type TimeFormat = '12' | '24';
 

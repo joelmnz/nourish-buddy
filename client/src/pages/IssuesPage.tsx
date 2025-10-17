@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { api } from '../lib/api';
 import type { Issue } from '../../../shared/types';
 
@@ -119,11 +119,7 @@ export default function IssuesPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingIssue, setEditingIssue] = useState<Issue | undefined>();
 
-  useEffect(() => {
-    loadIssues();
-  }, [page, perPage, search]);
-
-  async function loadIssues() {
+  const loadIssues = useCallback(async () => {
     try {
       setLoading(true);
       const data = await api.issues.list({ page, per_page: perPage, search: search || undefined });
@@ -135,7 +131,11 @@ export default function IssuesPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [page, perPage, search]);
+
+  useEffect(() => {
+    loadIssues();
+  }, [loadIssues]);
 
   function handleNewIssue() {
     setEditingIssue(undefined);
