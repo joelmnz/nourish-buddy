@@ -236,7 +236,7 @@ export default function WeeklyPlannerPage() {
               <th className="th" style={{ width: 120 }}>Meal</th>
               {DAYS.map((day, idx) => (
                 <th key={idx} className="th">
-                  <div className="flex flex-col" style={{ alignItems: 'center', gap: '4px' }}>
+                  <div className="flex flex-col" style={{ alignItems: 'center', gap: '4px', display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
                     <div>{day}</div>
                     <button
                       onClick={() => handleShuffle('day', idx)}
