@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 
 interface WeeklyPlan {
@@ -23,6 +24,7 @@ interface MealSlot {
 const BASE_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 export default function WeeklyPlannerPage() {
+  const navigate = useNavigate();
   const [plans, setPlans] = useState<{ THIS: WeeklyPlan | null; NEXT: WeeklyPlan | null }>({ THIS: null, NEXT: null });
   const [mealSlots, setMealSlots] = useState<MealSlot[]>([]);
   const [recipes, setRecipes] = useState<Array<{ id: number; title: string; slotKeys: string[] }>>([]);
@@ -182,10 +184,6 @@ export default function WeeklyPlannerPage() {
     }
   }
 
-  function getAvailableRecipes(slotKey: string) {
-    return recipes.filter((r) => r.slotKeys.includes(slotKey));
-  }
-
   if (loading) {
     return <div className="text-muted">Loading...</div>;
   }
@@ -263,7 +261,6 @@ export default function WeeklyPlannerPage() {
                 <div className="planner-card-body">
                   {mealSlots.map((slot) => {
                     const entry = getEntry(storageIdx, slot.slotKey);
-                    const availableRecipes = getAvailableRecipes(slot.slotKey);
                     return (
                       <div key={slot.slotKey} className="planner-slot">
                         <div className="planner-slot-meta">
@@ -271,18 +268,17 @@ export default function WeeklyPlannerPage() {
                           <div className="planner-slot-time text-sm text-muted">{slot.time24h}</div>
                         </div>
                         <div className="planner-slot-controls">
-                          <select
-                            value={entry?.recipeId || ''}
-                            onChange={(e) => setEntry(storageIdx, slot.slotKey, e.target.value ? parseInt(e.target.value) : null)}
-                            className="input"
-                          >
-                            <option value="">-</option>
-                            {availableRecipes.map((recipe) => (
-                              <option key={recipe.id} value={recipe.id}>
-                                {recipe.title}
-                              </option>
-                            ))}
-                          </select>
+                          {entry?.recipeId && entry?.recipeTitle ? (
+                            <button
+                              onClick={() => navigate(`/recipe/${entry.recipeId}`)}
+                              className="btn btn-ghost btn-sm"
+                              style={{ flex: 1, textAlign: 'left' }}
+                            >
+                              {entry.recipeTitle}
+                            </button>
+                          ) : (
+                            <div className="text-muted" style={{ flex: 1 }}>-</div>
+                          )}
                           <div className="planner-slot-actions">
                             <button
                               onClick={() => handleShuffle('cell', storageIdx, slot.slotKey)}
@@ -342,24 +338,21 @@ export default function WeeklyPlannerPage() {
                   {rotatedDays.map((_, rotatedIdx: number) => {
                     const storageIdx = toStorageDayIdx(rotatedIdx);
                     const entry = getEntry(storageIdx, slot.slotKey);
-                    const availableRecipes = getAvailableRecipes(slot.slotKey);
 
                     return (
                       <td key={rotatedIdx} className="td">
                         <div className="flex flex-col" style={{ gap: '4px' }}>
-                          <select
-                            value={entry?.recipeId || ''}
-                            onChange={(e) => setEntry(storageIdx, slot.slotKey, e.target.value ? parseInt(e.target.value) : null)}
-                            className="input"
-                            style={{ fontSize: '0.875rem' }}
-                          >
-                            <option value="">-</option>
-                            {availableRecipes.map((recipe) => (
-                              <option key={recipe.id} value={recipe.id}>
-                                {recipe.title}
-                              </option>
-                            ))}
-                          </select>
+                          {entry?.recipeId && entry?.recipeTitle ? (
+                            <button
+                              onClick={() => navigate(`/recipe/${entry.recipeId}`)}
+                              className="btn btn-ghost btn-sm"
+                              style={{ textAlign: 'left' }}
+                            >
+                              {entry.recipeTitle}
+                            </button>
+                          ) : (
+                            <div className="text-muted">-</div>
+                          )}
                           <div className="flex" style={{ gap: '4px' }}>
                             <button
                               onClick={() => handleShuffle('cell', storageIdx, slot.slotKey)}
