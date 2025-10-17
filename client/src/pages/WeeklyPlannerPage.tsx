@@ -243,82 +243,151 @@ export default function WeeklyPlannerPage() {
         )}
       </div>
 
-      <div className="card" style={{ overflowX: 'auto' }}>
-        <table className="table" style={{ minWidth: 800 }}>
-          <thead className="thead">
-            <tr>
-              <th className="th" style={{ width: 120 }}>Meal</th>
-              {rotatedDays.map((day: string, rotatedIdx: number) => (
-                <th key={rotatedIdx} className="th">
-                  <div className="flex flex-col" style={{ alignItems: 'center', gap: '4px', display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                    <div>{day}</div>
-                    <button
-                      onClick={() => handleShuffle('day', toStorageDayIdx(rotatedIdx))}
-                      className="btn btn-ghost btn-sm"
-                      title="Shuffle this day"
-                    >
-                      🎲
-                    </button>
-                  </div>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {mealSlots.map((slot) => (
-              <tr key={slot.slotKey} className="tr">
-                <td className="td">
-                  <div className="font-medium">{slot.name}</div>
-                  <div className="text-sm text-muted">{slot.time24h}</div>
-                </td>
-                {rotatedDays.map((_, rotatedIdx: number) => {
-                  const storageIdx = toStorageDayIdx(rotatedIdx);
-                  const entry = getEntry(storageIdx, slot.slotKey);
-                  const availableRecipes = getAvailableRecipes(slot.slotKey);
-
-                  return (
-                    <td key={rotatedIdx} className="td">
-                      <div className="flex flex-col" style={{ gap: '4px' }}>
-                        <select
-                          value={entry?.recipeId || ''}
-                          onChange={(e) => setEntry(storageIdx, slot.slotKey, e.target.value ? parseInt(e.target.value) : null)}
-                          className="input"
-                          style={{ fontSize: '0.875rem' }}
-                        >
-                          <option value="">-</option>
-                          {availableRecipes.map((recipe) => (
-                            <option key={recipe.id} value={recipe.id}>
-                              {recipe.title}
-                            </option>
-                          ))}
-                        </select>
-                        <div className="flex" style={{ gap: '4px' }}>
-                          <button
-                            onClick={() => handleShuffle('cell', storageIdx, slot.slotKey)}
-                            className="btn btn-ghost btn-sm"
-                            style={{ flex: 1 }}
-                            title="Shuffle this cell"
+      {/* Mobile: per-day cards; Desktop: table */}
+      <div className="planner-responsive">
+        <div className="planner-cards">
+          {rotatedDays.map((day: string, rotatedIdx: number) => {
+            const storageIdx = toStorageDayIdx(rotatedIdx);
+            return (
+              <div key={rotatedIdx} className="card planner-card">
+                <div className="planner-card-header">
+                  <div className="planner-card-title">{day}</div>
+                  <button
+                    onClick={() => handleShuffle('day', storageIdx)}
+                    className="btn btn-ghost btn-sm"
+                    title="Shuffle this day"
+                  >
+                    🎲
+                  </button>
+                </div>
+                <div className="planner-card-body">
+                  {mealSlots.map((slot) => {
+                    const entry = getEntry(storageIdx, slot.slotKey);
+                    const availableRecipes = getAvailableRecipes(slot.slotKey);
+                    return (
+                      <div key={slot.slotKey} className="planner-slot">
+                        <div className="planner-slot-meta">
+                          <div className="planner-slot-name">{slot.name}</div>
+                          <div className="planner-slot-time text-sm text-muted">{slot.time24h}</div>
+                        </div>
+                        <div className="planner-slot-controls">
+                          <select
+                            value={entry?.recipeId || ''}
+                            onChange={(e) => setEntry(storageIdx, slot.slotKey, e.target.value ? parseInt(e.target.value) : null)}
+                            className="input"
                           >
-                            🎲
-                          </button>
-                          {entry && (
+                            <option value="">-</option>
+                            {availableRecipes.map((recipe) => (
+                              <option key={recipe.id} value={recipe.id}>
+                                {recipe.title}
+                              </option>
+                            ))}
+                          </select>
+                          <div className="planner-slot-actions">
                             <button
-                              onClick={() => setEntry(storageIdx, slot.slotKey, null)}
+                              onClick={() => handleShuffle('cell', storageIdx, slot.slotKey)}
                               className="btn btn-ghost btn-sm"
-                              title="Clear"
+                              title="Shuffle this cell"
                             >
-                              ✕
+                              🎲
                             </button>
-                          )}
+                            {entry && (
+                              <button
+                                onClick={() => setEntry(storageIdx, slot.slotKey, null)}
+                                className="btn btn-ghost btn-sm"
+                                title="Clear"
+                              >
+                                ✕
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </td>
-                  );
-                })}
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="planner-table-wrap card">
+          <table className="table" style={{ minWidth: 800 }}>
+            <thead className="thead">
+              <tr>
+                <th className="th" style={{ width: 120 }}>Meal</th>
+                {rotatedDays.map((day: string, rotatedIdx: number) => (
+                  <th key={rotatedIdx} className="th">
+                    <div className="flex flex-col" style={{ alignItems: 'center', gap: '4px', display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
+                      <div>{day}</div>
+                      <button
+                        onClick={() => handleShuffle('day', toStorageDayIdx(rotatedIdx))}
+                        className="btn btn-ghost btn-sm"
+                        title="Shuffle this day"
+                      >
+                        🎲
+                      </button>
+                    </div>
+                  </th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {mealSlots.map((slot) => (
+                <tr key={slot.slotKey} className="tr">
+                  <td className="td">
+                    <div className="font-medium">{slot.name}</div>
+                    <div className="text-sm text-muted">{slot.time24h}</div>
+                  </td>
+                  {rotatedDays.map((_, rotatedIdx: number) => {
+                    const storageIdx = toStorageDayIdx(rotatedIdx);
+                    const entry = getEntry(storageIdx, slot.slotKey);
+                    const availableRecipes = getAvailableRecipes(slot.slotKey);
+
+                    return (
+                      <td key={rotatedIdx} className="td">
+                        <div className="flex flex-col" style={{ gap: '4px' }}>
+                          <select
+                            value={entry?.recipeId || ''}
+                            onChange={(e) => setEntry(storageIdx, slot.slotKey, e.target.value ? parseInt(e.target.value) : null)}
+                            className="input"
+                            style={{ fontSize: '0.875rem' }}
+                          >
+                            <option value="">-</option>
+                            {availableRecipes.map((recipe) => (
+                              <option key={recipe.id} value={recipe.id}>
+                                {recipe.title}
+                              </option>
+                            ))}
+                          </select>
+                          <div className="flex" style={{ gap: '4px' }}>
+                            <button
+                              onClick={() => handleShuffle('cell', storageIdx, slot.slotKey)}
+                              className="btn btn-ghost btn-sm"
+                              style={{ flex: 1 }}
+                              title="Shuffle this cell"
+                            >
+                              🎲
+                            </button>
+                            {entry && (
+                              <button
+                                onClick={() => setEntry(storageIdx, slot.slotKey, null)}
+                                className="btn btn-ghost btn-sm"
+                                title="Clear"
+                              >
+                                ✕
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
