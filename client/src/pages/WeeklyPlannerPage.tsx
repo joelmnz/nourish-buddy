@@ -20,7 +20,7 @@ interface MealSlot {
   notes: string | null;
 }
 
-const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const BASE_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 export default function WeeklyPlannerPage() {
   const [plans, setPlans] = useState<{ THIS: WeeklyPlan | null; NEXT: WeeklyPlan | null }>({ THIS: null, NEXT: null });
@@ -30,21 +30,34 @@ export default function WeeklyPlannerPage() {
   const [activeTab, setActiveTab] = useState<'THIS' | 'NEXT'>('THIS');
   const [hasChanges, setHasChanges] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [firstDayOfWeek, setFirstDayOfWeek] = useState<number>(0);
 
   useEffect(() => {
     loadData();
   }, []);
 
+  const rotatedDays = (() => {
+    const start = firstDayOfWeek % 7;
+    return [...BASE_DAYS.slice(start), ...BASE_DAYS.slice(0, start)];
+  })();
+
+  function toStorageDayIdx(rotatedIdx: number) {
+    return (rotatedIdx + firstDayOfWeek) % 7;
+  }
+
+
   async function loadData() {
     try {
-      const [plansData, slotsData, recipesData] = await Promise.all([
+      const [plansData, slotsData, recipesData, settingsData] = await Promise.all([
         api.weeklyPlans.get(),
         api.mealPlan.get(),
         api.recipes.list(),
+        api.settings.get(),
       ]);
       setPlans(plansData);
       setMealSlots(slotsData);
       setRecipes(recipesData);
+      setFirstDayOfWeek(settingsData.firstDayOfWeek ?? 0);
     } catch (error) {
       console.error('Failed to load data:', error);
     } finally {
@@ -58,6 +71,7 @@ export default function WeeklyPlannerPage() {
     return plan.entries.find((e) => e.dayIndex === dayIndex && e.slotKey === slotKey);
   }
 
+  // Write using storage indices (0=Sunday..6=Saturday) derived from rotated index
   function setEntry(dayIndex: number, slotKey: string, recipeId: number | null) {
     setPlans((prev) => {
       const plan = prev[activeTab];
@@ -234,12 +248,12 @@ export default function WeeklyPlannerPage() {
           <thead className="thead">
             <tr>
               <th className="th" style={{ width: 120 }}>Meal</th>
-              {DAYS.map((day, idx) => (
-                <th key={idx} className="th">
+              {rotatedDays.map((day: string, rotatedIdx: number) => (
+                <th key={rotatedIdx} className="th">
                   <div className="flex flex-col" style={{ alignItems: 'center', gap: '4px', display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
                     <div>{day}</div>
                     <button
-                      onClick={() => handleShuffle('day', idx)}
+                      onClick={() => handleShuffle('day', toStorageDayIdx(rotatedIdx))}
                       className="btn btn-ghost btn-sm"
                       title="Shuffle this day"
                     >
@@ -257,16 +271,17 @@ export default function WeeklyPlannerPage() {
                   <div className="font-medium">{slot.name}</div>
                   <div className="text-sm text-muted">{slot.time24h}</div>
                 </td>
-                {DAYS.map((_, dayIdx) => {
-                  const entry = getEntry(dayIdx, slot.slotKey);
+                {rotatedDays.map((_, rotatedIdx: number) => {
+                  const storageIdx = toStorageDayIdx(rotatedIdx);
+                  const entry = getEntry(storageIdx, slot.slotKey);
                   const availableRecipes = getAvailableRecipes(slot.slotKey);
 
                   return (
-                    <td key={dayIdx} className="td">
+                    <td key={rotatedIdx} className="td">
                       <div className="flex flex-col" style={{ gap: '4px' }}>
                         <select
                           value={entry?.recipeId || ''}
-                          onChange={(e) => setEntry(dayIdx, slot.slotKey, e.target.value ? parseInt(e.target.value) : null)}
+                          onChange={(e) => setEntry(storageIdx, slot.slotKey, e.target.value ? parseInt(e.target.value) : null)}
                           className="input"
                           style={{ fontSize: '0.875rem' }}
                         >
@@ -279,7 +294,7 @@ export default function WeeklyPlannerPage() {
                         </select>
                         <div className="flex" style={{ gap: '4px' }}>
                           <button
-                            onClick={() => handleShuffle('cell', dayIdx, slot.slotKey)}
+                            onClick={() => handleShuffle('cell', storageIdx, slot.slotKey)}
                             className="btn btn-ghost btn-sm"
                             style={{ flex: 1 }}
                             title="Shuffle this cell"
@@ -288,7 +303,7 @@ export default function WeeklyPlannerPage() {
                           </button>
                           {entry && (
                             <button
-                              onClick={() => setEntry(dayIdx, slot.slotKey, null)}
+                              onClick={() => setEntry(storageIdx, slot.slotKey, null)}
                               className="btn btn-ghost btn-sm"
                               title="Clear"
                             >

@@ -8,7 +8,7 @@ import { rebuildAllSchedules } from '../services/scheduler.ts';
 const updateSettingsSchema = z.object({
   reminders_enabled: z.boolean().optional(),
   time_format: z.enum(['12', '24']).optional(),
-  starting_meal_plan_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().nullable(),
+  first_day_of_week: z.number().int().min(0).max(6).optional(),
 });
 
 type Variables = {
@@ -26,9 +26,9 @@ settingsRoutes.get('/', async (c) => {
   
   if (rows.length === 0) {
     return c.json({
-      reminders_enabled: true,
+      reminders_enabled: false,
       time_format: '12' as const,
-      starting_meal_plan_date: null,
+      first_day_of_week: 0,
     });
   }
   
@@ -36,7 +36,7 @@ settingsRoutes.get('/', async (c) => {
   return c.json({
     reminders_enabled: row.remindersEnabled,
     time_format: row.timeFormat,
-    starting_meal_plan_date: row.startingMealPlanDate,
+    first_day_of_week: row.firstDayOfWeek,
   });
 });
 
@@ -50,13 +50,13 @@ settingsRoutes.put('/', async (c) => {
   const updateData: any = {};
   if (data.reminders_enabled !== undefined) updateData.remindersEnabled = data.reminders_enabled;
   if (data.time_format !== undefined) updateData.timeFormat = data.time_format;
-  if (data.starting_meal_plan_date !== undefined) updateData.startingMealPlanDate = data.starting_meal_plan_date;
+  if (data.first_day_of_week !== undefined) updateData.firstDayOfWeek = data.first_day_of_week;
   
   if (existing.length === 0) {
     await db.insert(settings).values({
       remindersEnabled: data.reminders_enabled ?? false,
       timeFormat: data.time_format ?? '12',
-      startingMealPlanDate: data.starting_meal_plan_date ?? null,
+      firstDayOfWeek: data.first_day_of_week ?? 0,
     });
   } else {
     if (Object.keys(updateData).length > 0) {

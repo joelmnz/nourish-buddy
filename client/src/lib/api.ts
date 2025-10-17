@@ -70,16 +70,16 @@ export const api = {
 
   settings: {
     async get() {
-      const data = await request<{ reminders_enabled: boolean; time_format: '12' | '24'; starting_meal_plan_date: string | null }>('/api/settings');
-      return { remindersEnabled: data.reminders_enabled, timeFormat: data.time_format, startingMealPlanDate: data.starting_meal_plan_date };
+      const data = await request<{ reminders_enabled: boolean; time_format: '12' | '24'; first_day_of_week: number }>('/api/settings');
+      return { remindersEnabled: data.reminders_enabled, timeFormat: data.time_format, firstDayOfWeek: data.first_day_of_week };
     },
-    async update(data: Partial<{ remindersEnabled: boolean; timeFormat: '12' | '24'; startingMealPlanDate: string | null }>) {
+    async update(data: Partial<{ remindersEnabled: boolean; timeFormat: '12' | '24'; firstDayOfWeek: number }>) {
       return request('/api/settings', {
         method: 'PUT',
         body: JSON.stringify({
           ...(data.remindersEnabled !== undefined ? { reminders_enabled: data.remindersEnabled } : {}),
           ...(data.timeFormat ? { time_format: data.timeFormat } : {}),
-          ...(data.startingMealPlanDate !== undefined ? { starting_meal_plan_date: data.startingMealPlanDate } : {}),
+          ...(data.firstDayOfWeek !== undefined ? { first_day_of_week: data.firstDayOfWeek } : {}),
         }),
       });
     },

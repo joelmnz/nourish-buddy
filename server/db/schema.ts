@@ -5,7 +5,7 @@ export const settings = sqliteTable('settings', {
   id: integer('id').primaryKey(),
   remindersEnabled: integer('reminders_enabled', { mode: 'boolean' }).notNull().default(false),
   timeFormat: text('time_format', { enum: ['12', '24'] }).notNull().default('12'),
-  startingMealPlanDate: text('starting_meal_plan_date'),
+  firstDayOfWeek: integer('first_day_of_week').notNull().default(0),
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
   updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
 });

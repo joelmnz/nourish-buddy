@@ -15,7 +15,7 @@ function urlBase64ToUint8Array(base64String?: string) {
 }
 
 export default function SettingsPage() {
-  const [settings, setSettings] = useState<{ remindersEnabled: boolean; timeFormat: TimeFormat; startingMealPlanDate: string | null } | null>(null);
+  const [settings, setSettings] = useState<{ remindersEnabled: boolean; timeFormat: TimeFormat; firstDayOfWeek: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [exporting, setExporting] = useState<'meals' | 'weights' | null>(null);
@@ -48,10 +48,14 @@ export default function SettingsPage() {
     }
   }
 
-  async function updateSetting(key: keyof { remindersEnabled: boolean; timeFormat: TimeFormat; startingMealPlanDate: string | null }, value: boolean | string | null) {
+  async function updateSetting(key: keyof { remindersEnabled: boolean; timeFormat: TimeFormat; firstDayOfWeek: number }, value: boolean | string | number | null) {
     if (!settings) return;
 
-    const updated = { ...settings, [key]: value };
+    const updated = { ...settings };
+    if (key === 'remindersEnabled') updated.remindersEnabled = value as boolean;
+    if (key === 'timeFormat') updated.timeFormat = (value ? '24' : '12') as TimeFormat;
+    if (key === 'firstDayOfWeek') updated.firstDayOfWeek = value as number;
+
     setSettings(updated);
     setSaving(true);
 
@@ -62,8 +66,8 @@ export default function SettingsPage() {
       if (key === 'timeFormat') {
         await api.settings.update({ timeFormat: value ? '24' : '12' });
       }
-      if (key === 'startingMealPlanDate') {
-        await api.settings.update({ startingMealPlanDate: value as string | null });
+      if (key === 'firstDayOfWeek') {
+        await api.settings.update({ firstDayOfWeek: value as number });
       }
     } catch (error) {
       console.error('Failed to update setting:', error);
@@ -202,17 +206,24 @@ export default function SettingsPage() {
         </div>
 
         <div className="mt-3">
-          <label htmlFor="startingDate" className="block text-sm text-muted mb-2">
-            Starting Meal Plan Date
+          <label htmlFor="firstDayOfWeek" className="block text-sm text-muted mb-2">
+            First Day Of Week
           </label>
-          <div className="text-sm text-muted mb-2">The date when your meal plan starts (for weekly planning)</div>
-          <input
-            id="startingDate"
-            type="date"
-            value={settings.startingMealPlanDate || ''}
-            onChange={(e) => updateSetting('startingMealPlanDate', e.target.value || null)}
+          <div className="text-sm text-muted mb-2">Controls the start of the week in the planner</div>
+          <select
+            id="firstDayOfWeek"
+            value={settings.firstDayOfWeek}
+            onChange={(e) => updateSetting('firstDayOfWeek', parseInt(e.target.value))}
             className="input"
-          />
+          >
+            <option value={0}>Sunday</option>
+            <option value={1}>Monday</option>
+            <option value={2}>Tuesday</option>
+            <option value={3}>Wednesday</option>
+            <option value={4}>Thursday</option>
+            <option value={5}>Friday</option>
+            <option value={6}>Saturday</option>
+          </select>
         </div>
         {saving && <div className="mt-3 text-sm" style={{ color: 'rgb(74, 222, 128)' }}>Saving...</div>}
       </div>

@@ -30,6 +30,7 @@ export async function seedDatabase() {
       id: 1,
       remindersEnabled: false,
       timeFormat: '12',
+      firstDayOfWeek: 0,
     });
     console.log('✓ Seeded default settings');
   }
@@ -64,18 +65,18 @@ export async function runMigrations() {
       id INTEGER PRIMARY KEY,
       reminders_enabled INTEGER NOT NULL DEFAULT 0,
       time_format TEXT NOT NULL DEFAULT '12' CHECK(time_format IN ('12','24')),
-      starting_meal_plan_date TEXT,
+      first_day_of_week INTEGER NOT NULL DEFAULT 0 CHECK(first_day_of_week BETWEEN 0 AND 6),
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       updated_at TEXT NOT NULL DEFAULT (datetime('now'))
     )
   `);
 
-  // Backfill: ensure column exists for existing databases created before this field
+  // Ensure new column exists for existing databases
   const settingsCols = sqlite.query(`PRAGMA table_info('settings')`).all() as Array<{ name: string }>;
-  const hasStartingDate = settingsCols.some((c) => c.name === 'starting_meal_plan_date');
-  if (!hasStartingDate) {
-    sqlite.run(`ALTER TABLE settings ADD COLUMN starting_meal_plan_date TEXT`);
-    console.log('✓ Migrated: added starting_meal_plan_date to settings');
+  const hasFirstDay = settingsCols.some((c) => c.name === 'first_day_of_week');
+  if (!hasFirstDay) {
+    sqlite.run(`ALTER TABLE settings ADD COLUMN first_day_of_week INTEGER NOT NULL DEFAULT 0 CHECK(first_day_of_week BETWEEN 0 AND 6)`);
+    console.log('✓ Migrated: added first_day_of_week to settings');
   }
 
   sqlite.run(`
