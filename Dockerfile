@@ -6,21 +6,18 @@ FROM oven/bun:1 AS client-builder
 
 WORKDIR /app
 
-# Copy client package files
-COPY client/package.json client/bun.lock ./client/
-
-# Copy root package files for workspace resolution
+# Copy root package files and install root deps so shared/* can resolve packages (e.g., zod)
 COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile
 
-# Ensure shared types are available for client build imports
-COPY shared/ ./shared/
-
-# Install client dependencies
+# Copy client package files and install client deps
+COPY client/package.json client/bun.lock ./client/
 WORKDIR /app/client
 RUN bun install --frozen-lockfile
 
-# Copy client source
-COPY client/ ./
+# Copy sources
+COPY shared/ /app/shared/
+COPY client/ /app/client/
 
 # Build client
 RUN bun run build
@@ -37,8 +34,8 @@ COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile
 
 # Copy server source
-COPY server/ ./server/
-COPY shared/ ./shared/
+COPY server/ /app/server/
+COPY shared/ /app/shared/
 
 # Build server bundle
 RUN bun run build:server
@@ -55,11 +52,11 @@ COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile --production
 
 # Copy built server bundle and any runtime shared types
-COPY --from=server-builder /app/dist ./dist
-COPY --from=server-builder /app/shared ./shared
+COPY --from=server-builder /app/dist /app/dist
+COPY --from=server-builder /app/shared /app/shared
 
 # Copy built client assets
-COPY --from=client-builder /app/client/dist ./client/dist
+COPY --from=client-builder /app/client/dist /app/client/dist
 
 # Create non-root user with UNRAID compatible IDs (GID 100 already exists as 'users')
 RUN adduser --system --uid 99 --ingroup users bunuser
