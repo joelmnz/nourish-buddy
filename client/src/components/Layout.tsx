@@ -28,11 +28,11 @@ function IconRecipes() {
     </svg>
   );
 }
-function IconSettings() {
+function IconIssues() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
-      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.03A1.65 1.65 0 0 0 9 3.09V3a2 2 0 1 1 4 0v.09a1.65 1.65 0  0 0 1 1.51h.03a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.03c0 .62.22 1.22.62 1.69.4.47.62 1.07.62 1.69z"/>
+      <circle cx="12" cy="12" r="10"/>
+      <path d="M12 8v4M12 16h.01"/>
     </svg>
   );
 }
@@ -137,7 +137,7 @@ export default function Layout() {
             <NavLink to="/" end aria-label="Today" title="Today" className={({ isActive }) => isActive ? 'active' : ''}><IconToday /></NavLink>
             <NavLink to="/planner" aria-label="Planner" title="Planner" className={({ isActive }) => isActive ? 'active' : ''}><IconPlanner /></NavLink>
             <NavLink to="/recipes" aria-label="Recipes" title="Recipes" className={({ isActive }) => isActive ? 'active' : ''}><IconRecipes /></NavLink>
-            <NavLink to="/settings" aria-label="Settings" title="Settings" className={({ isActive }) => isActive ? 'active' : ''}><IconSettings /></NavLink>
+            <NavLink to="/issues" aria-label="Issues" title="Issues" className={({ isActive }) => isActive ? 'active' : ''}><IconIssues /></NavLink>
             <div className="overflow-menu" ref={menuRef}>
               <button
                 ref={triggerRef}
@@ -162,7 +162,7 @@ export default function Layout() {
                 >
                   <NavLink to="/history" role="menuitem">History</NavLink>
                   <NavLink to="/weights" role="menuitem">Weights</NavLink>
-                  <NavLink to="/issues" role="menuitem">Issues</NavLink>
+                  <NavLink to="/settings" role="menuitem">Settings</NavLink>
                   <button onClick={logout} role="menuitem" className="menu-logout">Logout</button>
                 </div>
               )}
