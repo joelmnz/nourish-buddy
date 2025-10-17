@@ -149,7 +149,7 @@ export default function SettingsPage() {
       
       new Notification('Nourish Buddy', {
         body: 'Test notification sent successfully!',
-        icon: '/vite.svg',
+        icon: '/icon.svg',
       });
     } catch (error) {
       console.error('Failed to test notification:', error);
@@ -325,6 +325,19 @@ export default function SettingsPage() {
             {exporting === 'weights' ? 'Exporting...' : 'Export'}
           </button>
         </div>
+      </div>
+
+      <div className="mt-6 center">
+        <img src="/nourish-buddy-logo.png" alt="Nourish Buddy logo" style={{ height: 64, width: 'auto' }} />
+        <a
+          href="https://github.com/joelmnz/nourish-buddy"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sm"
+          style={{ color: 'var(--accent)' }}
+        >
+          View project on GitHub
+        </a>
       </div>
     </div>
   );

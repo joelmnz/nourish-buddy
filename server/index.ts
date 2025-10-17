@@ -59,7 +59,7 @@ if (env.NODE_ENV === 'production') {
   app.use('/assets/*', serveStatic({ root: './client/dist' }));
   app.use('/service-worker.js', serveStatic({ path: './client/dist/service-worker.js' }));
   app.use('/manifest.json', serveStatic({ path: './client/dist/manifest.json' }));
-  app.use('/vite.svg', serveStatic({ path: './client/dist/vite.svg' }));
+  app.use('/icon.svg', serveStatic({ path: './client/dist/icon.svg' }));
   app.use('/icon.svg', serveStatic({ path: './client/dist/icon.svg' }));
   app.use('/icon-192.png', serveStatic({ path: './client/dist/icon-192.png' }));
   app.use('/icon-512.png', serveStatic({ path: './client/dist/icon-512.png' }));
