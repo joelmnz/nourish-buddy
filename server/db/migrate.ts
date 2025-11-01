@@ -170,12 +170,13 @@ export async function runMigrations() {
     }>;
 
     for (const sub of existingSubs) {
-      if (!sub.platform) {
-        const platform = detectPlatform(sub.user_agent);
+      let platform = sub.platform;
+      if (!platform) {
+        platform = detectPlatform(sub.user_agent);
         sqlite.run(`UPDATE push_subscriptions SET platform = ? WHERE id = ?`, [platform, sub.id]);
       }
       if (!sub.device_name) {
-        const deviceName = generateDeviceName(sub.user_agent, sub.platform);
+        const deviceName = generateDeviceName(sub.user_agent, platform);
         sqlite.run(`UPDATE push_subscriptions SET device_name = ? WHERE id = ?`, [deviceName, sub.id]);
       }
     }
