@@ -127,11 +127,62 @@ export async function runMigrations() {
       auth TEXT NOT NULL,
       tz TEXT NOT NULL,
       user_agent TEXT,
+      platform TEXT,
+      device_name TEXT,
       enabled INTEGER NOT NULL DEFAULT 1,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
       last_seen_at TEXT
     )
   `);
+
+  // Add new columns for existing databases
+  const pushSubsCols = sqlite.query(`PRAGMA table_info('push_subscriptions')`).all() as Array<{ name: string }>;
+  const hasPlatform = pushSubsCols.some((c) => c.name === 'platform');
+  const hasDeviceName = pushSubsCols.some((c) => c.name === 'device_name');
+  const hasUpdatedAt = pushSubsCols.some((c) => c.name === 'updated_at');
+
+  if (!hasPlatform) {
+    sqlite.run(`ALTER TABLE push_subscriptions ADD COLUMN platform TEXT`);
+    console.log('✓ Migrated: added platform to push_subscriptions');
+  }
+
+  if (!hasDeviceName) {
+    sqlite.run(`ALTER TABLE push_subscriptions ADD COLUMN device_name TEXT`);
+    console.log('✓ Migrated: added device_name to push_subscriptions');
+  }
+
+  if (!hasUpdatedAt) {
+    sqlite.run(`ALTER TABLE push_subscriptions ADD COLUMN updated_at TEXT NOT NULL DEFAULT (datetime('now'))`);
+    console.log('✓ Migrated: added updated_at to push_subscriptions');
+  }
+
+  // Backfill device names and platform for existing subscriptions
+  if (!hasPlatform || !hasDeviceName) {
+    const { generateDeviceName, detectPlatform } = await import('../utils/device.ts');
+    const existingSubs = sqlite.query(`SELECT id, user_agent, platform, device_name FROM push_subscriptions`).all() as Array<{
+      id: number;
+      user_agent: string | null;
+      platform: string | null;
+      device_name: string | null;
+    }>;
+
+    for (const sub of existingSubs) {
+      if (!sub.platform) {
+        const platform = detectPlatform(sub.user_agent);
+        sqlite.run(`UPDATE push_subscriptions SET platform = ? WHERE id = ?`, [platform, sub.id]);
+      }
+      if (!sub.device_name) {
+        const deviceName = generateDeviceName(sub.user_agent, sub.platform);
+        sqlite.run(`UPDATE push_subscriptions SET device_name = ? WHERE id = ?`, [deviceName, sub.id]);
+      }
+    }
+
+    if (existingSubs.length > 0) {
+      console.log(`✓ Backfilled device names for ${existingSubs.length} subscription(s)`);
+    }
+  }
+
 
   sqlite.run(`
     CREATE TABLE IF NOT EXISTS issues (

@@ -6,6 +6,7 @@ import { eq } from 'drizzle-orm';
 import { getEnv } from '../config/env.ts';
 
 type ScheduledJob = {
+  id: number;
   endpoint: string;
   slotKey: string;
   task: ReturnType<typeof cron.schedule>;
@@ -60,6 +61,7 @@ export async function rebuildAllSchedules() {
 
 function scheduleNotificationForSlot(
   subscription: {
+    id: number;
     endpoint: string;
     p256dh: string;
     auth: string;
@@ -93,6 +95,7 @@ function scheduleNotificationForSlot(
   );
 
   scheduledJobs.push({
+    id: subscription.id,
     endpoint: subscription.endpoint,
     slotKey: slot.slotKey,
     task,
@@ -101,6 +104,7 @@ function scheduleNotificationForSlot(
 
 async function sendPushNotification(
   subscription: {
+    id: number;
     endpoint: string;
     p256dh: string;
     auth: string;
@@ -133,9 +137,11 @@ async function sendPushNotification(
       if (statusCode === 410 || statusCode === 404) {
         console.log(`Subscription expired or invalid: ${subscription.endpoint}`);
         const db = await getDb();
+        // Set enabled to false instead of deleting
         await db
-          .delete(pushSubscriptions)
-          .where(eq(pushSubscriptions.endpoint, subscription.endpoint));
+          .update(pushSubscriptions)
+          .set({ enabled: false })
+          .where(eq(pushSubscriptions.id, subscription.id));
       } else {
         console.error('Failed to send push notification:', err);
       }

@@ -52,8 +52,11 @@ export const pushSubscriptions = sqliteTable('push_subscriptions', {
   auth: text('auth').notNull(),
   tz: text('tz').notNull(),
   userAgent: text('user_agent'),
+  platform: text('platform'),
+  deviceName: text('device_name'),
   enabled: integer('enabled', { mode: 'boolean' }).notNull().default(true),
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+  updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
   lastSeenAt: text('last_seen_at'),
 });
 
