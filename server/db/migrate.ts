@@ -153,12 +153,14 @@ export async function runMigrations() {
   }
 
   if (!hasUpdatedAt) {
-    sqlite.run(`ALTER TABLE push_subscriptions ADD COLUMN updated_at TEXT NOT NULL DEFAULT (datetime('now'))`);
+    sqlite.run(`ALTER TABLE push_subscriptions ADD COLUMN updated_at TEXT`);
+    // Backfill updated_at with created_at or current time
+    sqlite.run(`UPDATE push_subscriptions SET updated_at = COALESCE(created_at, datetime('now')) WHERE updated_at IS NULL`);
     console.log('✓ Migrated: added updated_at to push_subscriptions');
   }
 
   // Backfill device names and platform for existing subscriptions
-  if (!hasPlatform || !hasDeviceName) {
+  if (!hasPlatform || !hasDeviceName || !hasUpdatedAt) {
     const { generateDeviceName, detectPlatform } = await import('../utils/device.ts');
     const existingSubs = sqlite.query(`SELECT id, user_agent, platform, device_name FROM push_subscriptions`).all() as Array<{
       id: number;
