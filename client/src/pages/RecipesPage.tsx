@@ -115,7 +115,7 @@ function RecipeForm({ recipe, onSave, onCancel }: RecipeFormProps) {
 
         <div>
           <label className="text-sm text-muted mb-2">Meal Types (optional)</label>
-          <p className="text-sm text-muted mb-2" style={{ marginTop: '-4px', fontSize: '0.8rem' }}>
+          <p className="text-xs text-muted mb-2 -mt-1">
             Select meal types where this recipe can be used, or leave empty to archive this recipe.
           </p>
           <div className="flex" style={{ gap: '8px', flexWrap: 'wrap' }}>
