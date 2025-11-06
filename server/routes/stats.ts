@@ -137,6 +137,10 @@ statsRoutes.get('/issues-by-day', async (c) => {
   start.setDate(today.getDate() - (days - 1));
   const startStr = start.toISOString().slice(0, 10);
 
+  if (!startStr) {
+    return c.json({ error: 'Failed to compute start date' }, 500);
+  }
+
   // Query totals grouped by date
   const rows = await db
     .select({
@@ -144,7 +148,7 @@ statsRoutes.get('/issues-by-day', async (c) => {
       total: sql<number>`sum(${issues.severity})`,
     })
     .from(issues)
-    .where(gte(issues.date, startStr!))
+    .where(gte(issues.date, startStr))
     .groupBy(issues.date)
     .orderBy(desc(issues.date));
 
@@ -160,7 +164,9 @@ statsRoutes.get('/issues-by-day', async (c) => {
     const d = new Date(start);
     d.setDate(start.getDate() + i);
     const dStr = d.toISOString().slice(0, 10);
-    series.push({ date: dStr!, total: map.get(dStr) ?? 0 });
+    if (dStr) {
+      series.push({ date: dStr, total: map.get(dStr) ?? 0 });
+    }
   }
 
   return c.json({ days, totals: series });
