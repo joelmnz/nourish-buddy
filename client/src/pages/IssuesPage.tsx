@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '../lib/api';
 import type { Issue } from '../../../shared/types';
+import IssuesByDayBar from '../components/IssuesByDayBar';
 
 interface IssueFormProps {
   issue?: Issue;
@@ -118,6 +119,8 @@ export default function IssuesPage() {
   const [total, setTotal] = useState(0);
   const [showForm, setShowForm] = useState(false);
   const [editingIssue, setEditingIssue] = useState<Issue | undefined>();
+  const [days, setDays] = useState<number>(14);
+  const [totals, setTotals] = useState<Array<{ date: string; total: number }>>([]);
 
   const loadIssues = useCallback(async () => {
     try {
@@ -136,6 +139,19 @@ export default function IssuesPage() {
   useEffect(() => {
     loadIssues();
   }, [loadIssues]);
+
+  useEffect(() => {
+    loadTotals(days);
+  }, [days]);
+
+  async function loadTotals(d: number) {
+    try {
+      const res = await api.stats.issuesByDay(d);
+      setTotals(res.totals);
+    } catch (error) {
+      console.error('Failed to load issue totals:', error);
+    }
+  }
 
   function handleNewIssue() {
     setEditingIssue(undefined);
@@ -187,6 +203,33 @@ export default function IssuesPage() {
   return (
     <div>
       <h1 className="h1 mb-4">Issues</h1>
+
+      <div className="card padded mb-4">
+        <div className="space-between items-center">
+          <div className="row">
+            <div className="font-medium mr-3">Issue severity per day</div>
+            <div className="row">
+              <label className="text-sm text-muted mr-2" htmlFor="daysInput">Days</label>
+              <input
+                id="daysInput"
+                type="number"
+                min={1}
+                max={365}
+                value={days}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value, 10);
+                  if (!isNaN(val)) setDays(Math.max(1, Math.min(365, val)));
+                }}
+                className="input"
+                style={{ width: 96 }}
+              />
+            </div>
+          </div>
+        </div>
+        <div className="mt-4">
+          <IssuesByDayBar totals={totals} />
+        </div>
+      </div>
 
       {showForm ? (
         <IssueForm
