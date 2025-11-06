@@ -345,7 +345,7 @@ export default function RecipesPage() {
             </span>
           ))
         ) : (
-          <span className="text-muted" style={{ fontStyle: 'italic', fontSize: '0.9rem' }}>
+          <span className="text-muted italic text-sm">
             Not assigned to any meal
           </span>
         )}
