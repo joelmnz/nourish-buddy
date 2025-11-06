@@ -65,10 +65,6 @@ function RecipeForm({ recipe, onSave, onCancel }: RecipeFormProps) {
       alert('Please enter a recipe title');
       return;
     }
-    if (slotKeys.length === 0) {
-      alert('Please select at least one meal type');
-      return;
-    }
 
     setSaving(true);
     try {
@@ -118,7 +114,10 @@ function RecipeForm({ recipe, onSave, onCancel }: RecipeFormProps) {
         </div>
 
         <div>
-          <label className="text-sm text-muted mb-2">Meal Types *</label>
+          <label className="text-sm text-muted mb-2">Meal Types (optional)</label>
+          <p className="text-sm text-muted mb-2" style={{ marginTop: '-4px', fontSize: '0.8rem' }}>
+            Select meal types where this recipe can be used, or leave empty to archive this recipe.
+          </p>
           <div className="flex" style={{ gap: '8px', flexWrap: 'wrap' }}>
             {allSlots.map((slot) => (
               <button
@@ -339,11 +338,17 @@ export default function RecipesPage() {
     <td className="td">{recipe.title}</td>
     <td className="td">
       <div className="flex" style={{ gap: '4px', flexWrap: 'wrap' }}>
-        {recipe.slotKeys.map((key) => (
-          <span key={key} className="badge">
-            {key}
+        {recipe.slotKeys.length > 0 ? (
+          recipe.slotKeys.map((key) => (
+            <span key={key} className="badge">
+              {key}
+            </span>
+          ))
+        ) : (
+          <span className="text-muted" style={{ fontStyle: 'italic', fontSize: '0.9rem' }}>
+            Not assigned to any meal
           </span>
-        ))}
+        )}
       </div>
     </td>
     <td className="td" style={{ paddingTop: 0, paddingBottom: 0 }}>
