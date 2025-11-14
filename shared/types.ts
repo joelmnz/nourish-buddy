@@ -62,8 +62,11 @@ export interface PushSubscription {
   auth: string;
   tz: string;
   userAgent: string | null;
+  platform: string | null;
+  deviceName: string | null;
   enabled: boolean;
   createdAt: string;
+  updatedAt: string;
   lastSeenAt: string | null;
 }
 

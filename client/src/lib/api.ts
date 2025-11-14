@@ -216,8 +216,42 @@ export const api = {
     async config() {
       return request<{ enabled: boolean; publicKey?: string }>('/api/push/config');
     },
-    async subscribe(data: { endpoint: string; keys: { p256dh: string; auth: string }; tz: string }) {
-      return request('/api/push/subscribe', { method: 'POST', body: JSON.stringify(data) });
+    async subscriptions() {
+      const res = await request<{
+        subscriptions: Array<{
+          id: number;
+          endpoint: string;
+          tz: string;
+          user_agent: string | null;
+          platform: string | null;
+          device_name: string | null;
+          enabled: boolean;
+          created_at: string;
+          updated_at: string;
+          last_seen_at: string | null;
+        }>;
+      }>('/api/push/subscriptions');
+      return res.subscriptions.map((s) => ({
+        id: s.id,
+        endpoint: s.endpoint,
+        tz: s.tz,
+        userAgent: s.user_agent,
+        platform: s.platform,
+        deviceName: s.device_name,
+        enabled: s.enabled,
+        createdAt: s.created_at,
+        updatedAt: s.updated_at,
+        lastSeenAt: s.last_seen_at,
+      }));
+    },
+    async subscribe(data: { endpoint: string; keys: { p256dh: string; auth: string }; tz: string; platform?: string; deviceName?: string }) {
+      return request<{ message: string; id: number }>('/api/push/subscribe', { method: 'POST', body: JSON.stringify(data) });
+    },
+    async updateSubscription(id: number, data: { enabled?: boolean; deviceName?: string; tz?: string }) {
+      return request('/api/push/subscriptions/' + id, { method: 'PATCH', body: JSON.stringify(data) });
+    },
+    async deleteSubscription(id: number) {
+      return request('/api/push/subscriptions/' + id, { method: 'DELETE' });
     },
     async unsubscribe(endpoint: string) {
       return request('/api/push/unsubscribe', { method: 'POST', body: JSON.stringify({ endpoint }) });

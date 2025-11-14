@@ -14,6 +14,19 @@ function urlBase64ToUint8Array(base64String?: string) {
   return outputArray;
 }
 
+type PushSubscription = {
+  id: number;
+  endpoint: string;
+  tz: string;
+  userAgent: string | null;
+  platform: string | null;
+  deviceName: string | null;
+  enabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+  lastSeenAt: string | null;
+};
+
 export default function SettingsPage() {
   const [settings, setSettings] = useState<{ remindersEnabled: boolean; timeFormat: TimeFormat; firstDayOfWeek: number } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -22,11 +35,33 @@ export default function SettingsPage() {
   const [testingPush, setTestingPush] = useState(false);
   const [mealSlots, setMealSlots] = useState<Array<{ slotKey: string; orderIndex: number; time24h: string; name: string; notes: string | null }>>([]);
   const [slotChanges, setSlotChanges] = useState(false);
+  const [subscriptions, setSubscriptions] = useState<PushSubscription[]>([]);
+  const [currentEndpoint, setCurrentEndpoint] = useState<string | null>(null);
+  const [editingDeviceName, setEditingDeviceName] = useState<{ id: number; name: string } | null>(null);
+  const [loadingDevices, setLoadingDevices] = useState(false);
 
   useEffect(() => {
     loadSettings();
     loadMealSlots();
+    loadSubscriptions();
+    detectCurrentEndpoint();
   }, []);
+
+  async function detectCurrentEndpoint() {
+    try {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        return;
+      }
+
+      const registration = await navigator.serviceWorker.ready;
+      const subscription = await registration.pushManager.getSubscription();
+      if (subscription) {
+        setCurrentEndpoint(subscription.endpoint);
+      }
+    } catch (error) {
+      console.error('Failed to detect current endpoint:', error);
+    }
+  }
 
   async function loadSettings() {
     try {
@@ -45,6 +80,18 @@ export default function SettingsPage() {
       setMealSlots(data);
     } catch (error) {
       console.error('Failed to load meal slots:', error);
+    }
+  }
+
+  async function loadSubscriptions() {
+    setLoadingDevices(true);
+    try {
+      const subs = await api.push.subscriptions();
+      setSubscriptions(subs);
+    } catch (error) {
+      console.error('Failed to load subscriptions:', error);
+    } finally {
+      setLoadingDevices(false);
     }
   }
 
@@ -147,6 +194,10 @@ export default function SettingsPage() {
       const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
       await api.push.subscribe({ endpoint: json.endpoint!, keys: { p256dh: json.keys!.p256dh!, auth: json.keys!.auth! }, tz });
       
+      // Reload subscriptions to show the new device
+      await loadSubscriptions();
+      await detectCurrentEndpoint();
+      
       new Notification('Nourish Buddy', {
         body: 'Test notification sent successfully!',
         icon: '/icon.svg',
@@ -158,6 +209,69 @@ export default function SettingsPage() {
       setTestingPush(false);
     }
   }
+
+  async function toggleDeviceEnabled(id: number, enabled: boolean) {
+    try {
+      await api.push.updateSubscription(id, { enabled });
+      setSubscriptions((prev) =>
+        prev.map((sub) => (sub.id === id ? { ...sub, enabled } : sub))
+      );
+    } catch (error) {
+      console.error('Failed to toggle device:', error);
+      alert('Failed to update device. Please try again.');
+    }
+  }
+
+  async function saveDeviceName(id: number, name: string) {
+    try {
+      await api.push.updateSubscription(id, { deviceName: name });
+      setSubscriptions((prev) =>
+        prev.map((sub) => (sub.id === id ? { ...sub, deviceName: name } : sub))
+      );
+      setEditingDeviceName(null);
+    } catch (error) {
+      console.error('Failed to save device name:', error);
+      alert('Failed to save device name. Please try again.');
+    }
+  }
+
+  async function deleteDevice(id: number, isCurrent: boolean) {
+    const confirmMessage = isCurrent
+      ? 'Are you sure you want to remove this device (current device)? You will need to re-enable notifications on this device.'
+      : 'Are you sure you want to remove this device?';
+
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+
+    try {
+      await api.push.deleteSubscription(id);
+      setSubscriptions((prev) => prev.filter((sub) => sub.id !== id));
+      if (isCurrent) {
+        setCurrentEndpoint(null);
+      }
+    } catch (error) {
+      console.error('Failed to delete device:', error);
+      alert('Failed to delete device. Please try again.');
+    }
+  }
+
+  function formatLastSeen(lastSeenAt: string | null): string {
+    if (!lastSeenAt) return 'Never';
+    const date = new Date(lastSeenAt);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return date.toLocaleDateString();
+  }
+
 
   if (loading) {
     return <div className="text-muted">Loading...</div>;
@@ -294,6 +408,158 @@ export default function SettingsPage() {
         <p className="mt-2 text-sm text-muted">
           This will request notification permissions and send a test notification
         </p>
+
+        <div className="mt-6">
+          <div className="space-between mb-3">
+            <h3 className="font-medium">Registered Devices</h3>
+            <button
+              onClick={loadSubscriptions}
+              disabled={loadingDevices}
+              className="btn btn-ghost"
+              style={{ fontSize: '0.875rem', padding: '4px 12px' }}
+            >
+              {loadingDevices ? 'Loading...' : 'Refresh'}
+            </button>
+          </div>
+          
+          {subscriptions.length === 0 && !loadingDevices && (
+            <div className="text-sm text-muted">
+              No devices registered. Use "Test Notification" to register this device.
+            </div>
+          )}
+
+          {subscriptions.length > 0 && (
+            <div className="space-y-3">
+              {subscriptions.map((sub) => {
+                const isCurrent = sub.endpoint === currentEndpoint;
+                const isEditing = editingDeviceName?.id === sub.id;
+
+                return (
+                  <div
+                    key={sub.id}
+                    className="card padded"
+                    style={{
+                      backgroundColor: isCurrent ? 'rgba(74, 222, 128, 0.1)' : undefined,
+                      border: isCurrent ? '1px solid rgb(74, 222, 128)' : undefined,
+                    }}
+                  >
+                    <div className="space-between">
+                      <div style={{ flex: 1 }}>
+                        <div className="space-between mb-2">
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            {isEditing ? (
+                              <input
+                                type="text"
+                                value={editingDeviceName.name}
+                                onChange={(e) =>
+                                  setEditingDeviceName({ id: sub.id, name: e.target.value })
+                                }
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    saveDeviceName(sub.id, editingDeviceName.name);
+                                  } else if (e.key === 'Escape') {
+                                    setEditingDeviceName(null);
+                                  }
+                                }}
+                                className="input"
+                                style={{ fontSize: '1rem', padding: '4px 8px', width: '200px' }}
+                                autoFocus
+                              />
+                            ) : (
+                              <span className="font-medium">
+                                {sub.deviceName || 'Unknown Device'}
+                              </span>
+                            )}
+                            {isCurrent && (
+                              <span
+                                className="text-sm"
+                                style={{
+                                  color: 'rgb(74, 222, 128)',
+                                  backgroundColor: 'rgba(74, 222, 128, 0.2)',
+                                  padding: '2px 8px',
+                                  borderRadius: '4px',
+                                }}
+                              >
+                                This Device
+                              </span>
+                            )}
+                          </div>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            {isEditing ? (
+                              <>
+                                <button
+                                  onClick={() => saveDeviceName(sub.id, editingDeviceName.name)}
+                                  className="btn btn-primary"
+                                  style={{ fontSize: '0.75rem', padding: '4px 8px' }}
+                                >
+                                  Save
+                                </button>
+                                <button
+                                  onClick={() => setEditingDeviceName(null)}
+                                  className="btn btn-ghost"
+                                  style={{ fontSize: '0.75rem', padding: '4px 8px' }}
+                                >
+                                  Cancel
+                                </button>
+                              </>
+                            ) : (
+                              <button
+                                onClick={() =>
+                                  setEditingDeviceName({
+                                    id: sub.id,
+                                    name: sub.deviceName || '',
+                                  })
+                                }
+                                className="btn btn-ghost"
+                                style={{ fontSize: '0.75rem', padding: '4px 8px' }}
+                              >
+                                Rename
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-sm text-muted">
+                          {sub.platform || 'Unknown Platform'} • Last seen:{' '}
+                          {formatLastSeen(sub.lastSeenAt)}
+                        </div>
+                        {!sub.enabled && (
+                          <div
+                            className="text-sm mt-2"
+                            style={{ color: 'rgb(245, 158, 11)' }}
+                          >
+                            ⚠ Notifications disabled (needs re-enable)
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="space-between mt-3">
+                      <button
+                        onClick={() => toggleDeviceEnabled(sub.id, !sub.enabled)}
+                        className="toggle-btn"
+                        aria-label="Toggle device notifications"
+                      >
+                        <div className={`toggle ${sub.enabled ? 'on' : ''}`}>
+                          <div className="toggle-knob" />
+                        </div>
+                      </button>
+                      <button
+                        onClick={() => deleteDevice(sub.id, isCurrent)}
+                        className="btn"
+                        style={{
+                          fontSize: '0.875rem',
+                          padding: '4px 12px',
+                          color: 'rgb(239, 68, 68)',
+                        }}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="card padded mb-4">
