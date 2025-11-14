@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { getDb } from '../db/index.ts';
-import { mealLogs, weights } from '../db/schema.ts';
+import { mealLogs, weights, issues } from '../db/schema.ts';
 import { requireAuth } from '../middleware/auth.ts';
 import { desc, gte } from 'drizzle-orm';
 import { sql } from 'drizzle-orm';
@@ -118,4 +118,56 @@ statsRoutes.get('/weights', async (c) => {
       kg: w.kg,
     })),
   });
+});
+
+// Timeseries of issue severity totals per day for last N days (default 14)
+statsRoutes.get('/issues-by-day', async (c) => {
+  const daysParam = c.req.query('days');
+  const days = daysParam ? parseInt(daysParam, 10) : 14;
+
+  if (isNaN(days) || days < 1 || days > 365) {
+    return c.json({ error: 'Invalid days parameter (1-365)' }, 400);
+  }
+
+  const db = await getDb();
+
+  // Compute start date (inclusive)
+  const today = new Date();
+  const start = new Date(today);
+  start.setDate(today.getDate() - (days - 1));
+  const startStr = start.toISOString().slice(0, 10);
+
+  if (!startStr) {
+    return c.json({ error: 'Failed to compute start date' }, 500);
+  }
+
+  // Query totals grouped by date
+  const rows = await db
+    .select({
+      date: issues.date,
+      total: sql<number>`sum(${issues.severity})`,
+    })
+    .from(issues)
+    .where(gte(issues.date, startStr))
+    .groupBy(issues.date)
+    .orderBy(desc(issues.date));
+
+  // Build a complete series covering each day with zero fill
+  const map = new Map<string, number>();
+  for (const r of rows) {
+    // Some SQLite drivers may return null for sum when no rows; default to 0
+    map.set(r.date, (r.total ?? 0) as number);
+  }
+
+  const series: Array<{ date: string; total: number }> = [];
+  for (let i = 0; i < days; i++) {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    const dStr = d.toISOString().slice(0, 10);
+    if (dStr) {
+      series.push({ date: dStr, total: map.get(dStr) ?? 0 });
+    }
+  }
+
+  return c.json({ days, totals: series });
 });
