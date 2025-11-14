@@ -69,3 +69,11 @@ export function isValidTime24h(time: string): boolean {
   
   return hours >= 0 && hours < 24 && minutes >= 0 && minutes < 60;
 }
+
+export function getServerTimezone(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+  } catch {
+    return 'UTC';
+  }
+}
