@@ -38,3 +38,4 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 client/.env.development.local
 client/.env.local
 .env
+cookies.txt

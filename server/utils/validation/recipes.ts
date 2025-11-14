@@ -8,14 +8,14 @@ export const ingredientSchema = z.object({
 
 export const createRecipeSchema = z.object({
   title: z.string().min(1).max(200),
-  slot_keys: z.array(slotKeyEnum).min(1),
+  slot_keys: z.array(slotKeyEnum).default([]),
   ingredients: z.array(ingredientSchema).default([]),
   instructions: z.string().max(10000).optional().nullable(),
 });
 
 export const updateRecipeSchema = z.object({
   title: z.string().min(1).max(200).optional(),
-  slot_keys: z.array(slotKeyEnum).min(1).optional(),
+  slot_keys: z.array(slotKeyEnum).optional(),
   ingredients: z.array(ingredientSchema).optional(),
   instructions: z.string().max(10000).optional().nullable(),
 });
