@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 import DaySelector from '../components/DaySelector';
+import RecipePickerModal from '../components/RecipePickerModal';
 
 interface WeeklyPlan {
   id: number;
@@ -20,6 +21,13 @@ interface MealSlot {
   time24h: string;
   name: string;
   notes: string | null;
+}
+
+interface PickerState {
+  isOpen: boolean;
+  slotKey: string;
+  slotName: string;
+  dayIndex: number;
 }
 
 const BASE_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -48,6 +56,25 @@ export default function WeeklyPlannerPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const [pickerState, setPickerState] = useState<PickerState>({
+    isOpen: false,
+    slotKey: '',
+    slotName: '',
+    dayIndex: 0,
+  });
+
+  function openPicker(slotKey: string, slotName: string, dayIndex: number) {
+    setPickerState({ isOpen: true, slotKey, slotName, dayIndex });
+  }
+
+  function closePicker() {
+    setPickerState((prev) => ({ ...prev, isOpen: false }));
+  }
+
+  function handlePickerSelect(recipeId: number) {
+    setEntry(pickerState.dayIndex, pickerState.slotKey, recipeId);
+    closePicker();
+  }
 
   useEffect(() => {
     loadData();
@@ -393,6 +420,13 @@ export default function WeeklyPlannerPage() {
                           )}
                           <div className="planner-slot-actions">
                             <button
+                              onClick={() => openPicker(slot.slotKey, slot.name, storageIdx)}
+                              className="btn btn-ghost btn-sm"
+                              title="Pick recipe"
+                            >
+                              🔍
+                            </button>
+                            <button
                               onClick={() => handleShuffle('cell', storageIdx, slot.slotKey)}
                               className="btn btn-ghost btn-sm"
                               title="Shuffle this cell"
@@ -467,6 +501,13 @@ export default function WeeklyPlannerPage() {
                           )}
                           <div className="flex" style={{ gap: '4px' }}>
                             <button
+                              onClick={() => openPicker(slot.slotKey, slot.name, storageIdx)}
+                              className="btn btn-ghost btn-sm"
+                              title="Pick recipe"
+                            >
+                              🔍
+                            </button>
+                            <button
                               onClick={() => handleShuffle('cell', storageIdx, slot.slotKey)}
                               className="btn btn-ghost btn-sm"
                               style={{ flex: 1 }}
@@ -494,6 +535,14 @@ export default function WeeklyPlannerPage() {
           </table>
         </div>
       </div>
+
+      <RecipePickerModal
+        isOpen={pickerState.isOpen}
+        slotKey={pickerState.slotKey}
+        slotName={pickerState.slotName}
+        onClose={closePicker}
+        onSelect={handlePickerSelect}
+      />
     </div>
   );
 }

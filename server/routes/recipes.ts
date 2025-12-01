@@ -18,6 +18,17 @@ recipesRoutes.get('/', async (c) => {
   return c.json({ recipes });
 });
 
+recipesRoutes.get('/by-slot/:slotKey', async (c) => {
+  const slotKey = c.req.param('slotKey');
+  const validSlots = ['BREAKFAST', 'SNACK_1', 'LUNCH', 'SNACK_2', 'DINNER', 'DESSERT', 'SUPPER'] as const;
+  if (!validSlots.includes(slotKey as typeof validSlots[number])) {
+    return c.json({ message: 'Invalid slot key' }, 400);
+  }
+  
+  const recipes = await recipeService.listRecipesBySlotKey(slotKey as typeof validSlots[number]);
+  return c.json({ recipes });
+});
+
 recipesRoutes.get('/:id', async (c) => {
   const id = parseInt(c.req.param('id'));
   if (isNaN(id)) return c.json({ message: 'Invalid ID' }, 400);

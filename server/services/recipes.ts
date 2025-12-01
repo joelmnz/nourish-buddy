@@ -163,3 +163,34 @@ export async function deleteRecipe(id: number) {
   
   await db.delete(recipes).where(eq(recipes.id, id));
 }
+
+type SlotKeyType = 'BREAKFAST' | 'SNACK_1' | 'LUNCH' | 'SNACK_2' | 'DINNER' | 'DESSERT' | 'SUPPER';
+
+export async function listRecipesBySlotKey(slotKey: SlotKeyType) {
+  const db = await getDb();
+  
+  // Find all recipe IDs associated with this slot key
+  const recipeSlots = await db.select({ recipeId: recipeMealSlots.recipeId })
+    .from(recipeMealSlots)
+    .where(eq(recipeMealSlots.slotKey, slotKey));
+  
+  if (recipeSlots.length === 0) {
+    return [];
+  }
+  
+  const recipeIds = recipeSlots.map(rs => rs.recipeId);
+  
+  // Get the recipes with those IDs
+  const recipesList = await db.select({
+    id: recipes.id,
+    title: recipes.title,
+  })
+    .from(recipes)
+    .where(inArray(recipes.id, recipeIds))
+    .orderBy(recipes.title);
+  
+  return recipesList.map(r => ({
+    id: r.id,
+    title: r.title,
+  }));
+}

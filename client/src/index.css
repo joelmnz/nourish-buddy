@@ -262,6 +262,24 @@ input, select { font: inherit; }
   justify-content: flex-end;
 }
 
+/* Recipe Picker Modal */
+.recipe-picker-modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  width: 100%;
+  max-width: 1120px;
+  height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.recipe-picker-list {
+  overflow-y: auto;
+  flex: 1;
+}
+
 /* Badge */
 .badge {
   display: inline-flex;
