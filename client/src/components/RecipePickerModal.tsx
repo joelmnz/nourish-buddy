@@ -92,10 +92,7 @@ export default function RecipePickerModal({
                 <button
                   key={recipe.id}
                   className="list-button"
-                  onClick={() => {
-                    onSelect(recipe.id);
-                    onClose();
-                  }}
+                  onClick={() => onSelect(recipe.id)}
                 >
                   {recipe.title}
                 </button>

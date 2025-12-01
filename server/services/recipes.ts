@@ -1,6 +1,7 @@
 import { eq, like, and, inArray, sql } from 'drizzle-orm';
 import { getDb } from '../db/index.ts';
 import { recipes, recipeIngredients, recipeMealSlots, weeklyPlanEntries } from '../db/schema.ts';
+import type { SlotKey } from '../../shared/types.ts';
 
 export interface RecipeIngredient {
   qty: string;
@@ -9,7 +10,7 @@ export interface RecipeIngredient {
 
 export interface RecipeData {
   title: string;
-  slot_keys: Array<'BREAKFAST' | 'SNACK_1' | 'LUNCH' | 'SNACK_2' | 'DINNER' | 'DESSERT' | 'SUPPER'>;
+  slot_keys: SlotKey[];
   ingredients: RecipeIngredient[];
   instructions?: string | null;
 }
@@ -164,9 +165,7 @@ export async function deleteRecipe(id: number) {
   await db.delete(recipes).where(eq(recipes.id, id));
 }
 
-type SlotKeyType = 'BREAKFAST' | 'SNACK_1' | 'LUNCH' | 'SNACK_2' | 'DINNER' | 'DESSERT' | 'SUPPER';
-
-export async function listRecipesBySlotKey(slotKey: SlotKeyType) {
+export async function listRecipesBySlotKey(slotKey: SlotKey) {
   const db = await getDb();
   
   // Find all recipe IDs associated with this slot key
