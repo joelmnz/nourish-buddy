@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { requireAuth } from '../middleware/auth.ts';
 import { createRecipeSchema, updateRecipeSchema } from '../utils/validation/recipes.ts';
 import * as recipeService from '../services/recipes.ts';
+import { SLOT_KEYS, type SlotKey } from '../../shared/types.ts';
 
 type Variables = {
   auth: { authenticated: boolean };
@@ -15,6 +16,16 @@ recipesRoutes.use('*', requireAuth);
 recipesRoutes.get('/', async (c) => {
   const query = c.req.query('query');
   const recipes = await recipeService.listRecipes(query);
+  return c.json({ recipes });
+});
+
+recipesRoutes.get('/by-slot/:slotKey', async (c) => {
+  const slotKey = c.req.param('slotKey');
+  if (!SLOT_KEYS.includes(slotKey as SlotKey)) {
+    return c.json({ message: 'Invalid slot key' }, 400);
+  }
+  
+  const recipes = await recipeService.listRecipesBySlotKey(slotKey as SlotKey);
   return c.json({ recipes });
 });
 

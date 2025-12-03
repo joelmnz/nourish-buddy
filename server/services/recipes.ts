@@ -1,6 +1,7 @@
 import { eq, like, and, inArray, sql } from 'drizzle-orm';
 import { getDb } from '../db/index.ts';
 import { recipes, recipeIngredients, recipeMealSlots, weeklyPlanEntries } from '../db/schema.ts';
+import type { SlotKey } from '../../shared/types.ts';
 
 export interface RecipeIngredient {
   qty: string;
@@ -9,7 +10,7 @@ export interface RecipeIngredient {
 
 export interface RecipeData {
   title: string;
-  slot_keys: Array<'BREAKFAST' | 'SNACK_1' | 'LUNCH' | 'SNACK_2' | 'DINNER' | 'DESSERT' | 'SUPPER'>;
+  slot_keys: SlotKey[];
   ingredients: RecipeIngredient[];
   instructions?: string | null;
 }
@@ -162,4 +163,33 @@ export async function deleteRecipe(id: number) {
   }
   
   await db.delete(recipes).where(eq(recipes.id, id));
+}
+
+export async function listRecipesBySlotKey(slotKey: SlotKey) {
+  const db = await getDb();
+  
+  // Find all recipe IDs associated with this slot key
+  const recipeSlots = await db.select({ recipeId: recipeMealSlots.recipeId })
+    .from(recipeMealSlots)
+    .where(eq(recipeMealSlots.slotKey, slotKey));
+  
+  if (recipeSlots.length === 0) {
+    return [];
+  }
+  
+  const recipeIds = recipeSlots.map(rs => rs.recipeId);
+  
+  // Get the recipes with those IDs
+  const recipesList = await db.select({
+    id: recipes.id,
+    title: recipes.title,
+  })
+    .from(recipes)
+    .where(inArray(recipes.id, recipeIds))
+    .orderBy(recipes.title);
+  
+  return recipesList.map(r => ({
+    id: r.id,
+    title: r.title,
+  }));
 }

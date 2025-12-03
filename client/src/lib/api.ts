@@ -317,6 +317,10 @@ export const api = {
         slotKeys: r.slot_keys,
       }));
     },
+    async listBySlotKey(slotKey: string) {
+      const res = await request<{ recipes: Array<{ id: number; title: string }> }>(`/api/recipes/by-slot/${slotKey}`);
+      return res.recipes;
+    },
     async get(id: number) {
       const res = await request<{ id: number; title: string; slot_keys: string[]; ingredients: Array<{ qty: string; item: string }>; instructions: string | null }>(`/api/recipes/${id}`);
       return {
