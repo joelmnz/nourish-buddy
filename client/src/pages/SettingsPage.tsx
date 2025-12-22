@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api } from '../lib/api';
+import { getLocalDateString } from '../lib/date-utils';
 import type { TimeFormat } from '../../../shared/types';
 
 function urlBase64ToUint8Array(base64String?: string) {
@@ -152,7 +153,7 @@ export default function SettingsPage() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `nourish-buddy-${type}-${new Date().toISOString().split('T')[0]}.csv`;
+      a.download = `nourish-buddy-${type}-${getLocalDateString()}.csv`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);

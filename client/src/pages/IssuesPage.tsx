@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '../lib/api';
+import { getLocalDateString } from '../lib/date-utils';
 import type { Issue } from '../../../shared/types';
 import IssuesByDayBar from '../components/IssuesByDayBar';
 
@@ -10,7 +11,7 @@ interface IssueFormProps {
 }
 
 function IssueForm({ issue, onSave, onCancel }: IssueFormProps) {
-  const [date, setDate] = useState(issue?.date || new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState(issue?.date || getLocalDateString());
   const [title, setTitle] = useState(issue?.title || '');
   const [severity, setSeverity] = useState(issue?.severity?.toString() || '0');
   const [description, setDescription] = useState(issue?.description || '');
