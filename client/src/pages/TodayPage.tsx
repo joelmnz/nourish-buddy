@@ -1,15 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { api } from '../lib/api';
-
-// Get today's date in YYYY-MM-DD format using the browser's local timezone
-function getLocalDateString(): string {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
+import { getLocalDateString } from '../lib/date-utils';
 
 export default function TodayPage() {
   const location = useLocation();
