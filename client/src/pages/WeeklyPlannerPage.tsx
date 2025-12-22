@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 import DaySelector from '../components/DaySelector';
@@ -93,19 +93,22 @@ export default function WeeklyPlannerPage() {
     return () => document.removeEventListener('click', onDocClick);
   }, [menuOpen]);
 
-  // Set selected day to current day of week on mount
-  useEffect(() => {
-    const today = new Date();
-    const currentDayOfWeek = today.getDay(); // 0 = Sunday, 6 = Saturday
-    // Calculate the index in the rotated days array
-    const rotatedIndex = (currentDayOfWeek - firstDayOfWeek + 7) % 7;
-    setSelectedDayIndex(rotatedIndex);
-  }, [firstDayOfWeek]);
-
   const rotatedDays = (() => {
     const start = firstDayOfWeek % 7;
     return [...BASE_DAYS.slice(start), ...BASE_DAYS.slice(0, start)];
   })();
+
+  // Calculate current day's rotated index (used for both mobile selection and desktop indicator)
+  const currentDayRotatedIndex = useMemo(() => {
+    const today = new Date();
+    const currentDayOfWeek = today.getDay(); // 0 = Sunday, 6 = Saturday
+    return (currentDayOfWeek - firstDayOfWeek + 7) % 7;
+  }, [firstDayOfWeek]);
+
+  // Set selected day to current day of week on mount
+  useEffect(() => {
+    setSelectedDayIndex(currentDayRotatedIndex);
+  }, [currentDayRotatedIndex]);
 
   function toStorageDayIdx(rotatedIdx: number) {
     return (rotatedIdx + firstDayOfWeek) % 7;
@@ -459,7 +462,7 @@ export default function WeeklyPlannerPage() {
               <tr>
                 <th className="th" style={{ width: 120 }}>Meal</th>
                 {rotatedDays.map((day: string, rotatedIdx: number) => (
-                  <th key={rotatedIdx} className="th">
+                  <th key={rotatedIdx} className={`th ${rotatedIdx === currentDayRotatedIndex ? 'th-active-day' : ''}`}>
                     <div className="flex flex-col" style={{ alignItems: 'center', gap: '4px', display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
                       <div>{day}</div>
                       <button
