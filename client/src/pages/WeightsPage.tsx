@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { api } from '../lib/api';
+import { getLocalDateString } from '../lib/date-utils';
 
 import WeightChart from '../components/WeightChart';
 
 export default function WeightsPage() {
   const [weights, setWeights] = useState<Array<{ date: string; kg: number }>>([]);
   const [loading, setLoading] = useState(true);
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState(getLocalDateString());
   const [weight, setWeight] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [editingDate, setEditingDate] = useState<string | null>(null);
@@ -44,7 +45,7 @@ export default function WeightsPage() {
       await api.weights.create({ date, kg });
       await loadWeights();
       setWeight('');
-      setDate(new Date().toISOString().split('T')[0]);
+      setDate(getLocalDateString());
       setEditingDate(null);
     } catch (error) {
       console.error('Failed to save weight:', error);
@@ -66,7 +67,7 @@ export default function WeightsPage() {
 
   function handleCancelEdit() {
     setEditingDate(null);
-    setDate(new Date().toISOString().split('T')[0]);
+    setDate(getLocalDateString());
     setWeight('');
   }
 
