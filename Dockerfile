@@ -59,7 +59,7 @@ COPY --from=server-builder /app/shared /app/shared
 COPY --from=client-builder /app/client/dist /app/client/dist
 
 # Create non-root user with UNRAID compatible IDs (GID 100 already exists as 'users')
-RUN adduser --system --uid 99 --ingroup users bunuser
+RUN useradd --system --uid 99 -g users --no-create-home bunuser
 
 # Create data directory with proper permissions
 RUN mkdir -p /app/data && \
