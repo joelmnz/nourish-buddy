@@ -129,6 +129,7 @@ input, select { font: inherit; }
 .table { width: 100%; border-collapse: collapse; }
 .thead { background: rgba(17, 24, 39, .6); }
 .th, .td { padding: 12px 14px; border-bottom: 1px solid var(--border); text-align: left; }
+.th-active-day { background: var(--primary); color: white; font-weight: 700; }
 .tr:hover { background: rgba(31, 41, 55, .4); }
 
 /* Planner actions responsive */

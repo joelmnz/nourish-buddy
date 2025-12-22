@@ -107,6 +107,13 @@ export default function WeeklyPlannerPage() {
     return [...BASE_DAYS.slice(start), ...BASE_DAYS.slice(0, start)];
   })();
 
+  // Calculate current day's rotated index for desktop view indicator
+  const currentDayRotatedIndex = (() => {
+    const today = new Date();
+    const currentDayOfWeek = today.getDay(); // 0 = Sunday, 6 = Saturday
+    return (currentDayOfWeek - firstDayOfWeek + 7) % 7;
+  })();
+
   function toStorageDayIdx(rotatedIdx: number) {
     return (rotatedIdx + firstDayOfWeek) % 7;
   }
@@ -459,7 +466,7 @@ export default function WeeklyPlannerPage() {
               <tr>
                 <th className="th" style={{ width: 120 }}>Meal</th>
                 {rotatedDays.map((day: string, rotatedIdx: number) => (
-                  <th key={rotatedIdx} className="th">
+                  <th key={rotatedIdx} className={`th ${rotatedIdx === currentDayRotatedIndex ? 'th-active-day' : ''}`}>
                     <div className="flex flex-col" style={{ alignItems: 'center', gap: '4px', display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
                       <div>{day}</div>
                       <button
