@@ -168,6 +168,7 @@ export default function IssuesPage() {
     setShowForm(false);
     setEditingIssue(undefined);
     loadIssues();
+    loadTotals(days);
   }
 
   function handleFormCancel() {
@@ -181,6 +182,7 @@ export default function IssuesPage() {
     try {
       await api.issues.delete(issue.id);
       loadIssues();
+      loadTotals(days);
     } catch (error) {
       console.error('Failed to delete issue:', error);
       alert('Failed to delete issue');
