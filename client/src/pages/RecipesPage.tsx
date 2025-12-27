@@ -237,11 +237,13 @@ export default function RecipesPage() {
           setShowForm(true);
         } catch (error) {
           console.error('Failed to load recipe:', error);
+          alert('Failed to load recipe for editing. Please try again from the recipes list.');
         }
       })();
       // Clear the URL parameter after triggering edit
       setSearchParams({});
     }
+    // Note: setSearchParams is stable and won't cause re-renders
   }, [searchParams, setSearchParams]);
 
   function handleNewRecipe() {
