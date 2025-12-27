@@ -11,6 +11,7 @@ import WeightsPage from './pages/WeightsPage';
 import IssuesPage from './pages/IssuesPage';
 import SettingsPage from './pages/SettingsPage';
 import ViewRecipePage from './pages/ViewRecipePage';
+import EditRecipePage from './pages/EditRecipePage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, loading } = useAuth();
@@ -40,6 +41,7 @@ function App() {
             <Route path="planner" element={<WeeklyPlannerPage />} />
             <Route path="recipes" element={<RecipesPage />} />
             <Route path="recipe/:id" element={<ViewRecipePage />} />
+            <Route path="recipe/edit/:id" element={<EditRecipePage />} />
             <Route path="history" element={<HistoryPage />} />
             <Route path="weights" element={<WeightsPage />} />
             <Route path="issues" element={<IssuesPage />} />

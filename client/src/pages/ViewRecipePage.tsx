@@ -53,7 +53,7 @@ export default function ViewRecipePage() {
       <div className="space-between mb-2">
         <h1 className="h1" style={{ marginBottom: 0 }}>{recipe.title}</h1>
         <button
-          onClick={() => navigate(`/recipes?edit=${id}`)}
+          onClick={() => navigate(`/recipe/edit/${id}`)}
           className="btn btn-ghost"
         >
           Edit

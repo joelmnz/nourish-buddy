@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 
 interface Recipe {
@@ -203,7 +203,6 @@ function RecipeForm({ recipe, onSave, onCancel }: RecipeFormProps) {
 
 export default function RecipesPage() {
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -225,26 +224,6 @@ export default function RecipesPage() {
   useEffect(() => {
     loadRecipes();
   }, [loadRecipes]);
-
-  useEffect(() => {
-    const editId = searchParams.get('edit');
-    if (editId && !isNaN(Number(editId))) {
-      // Trigger edit mode for the specified recipe
-      (async () => {
-        try {
-          const recipe = await api.recipes.get(Number(editId));
-          setEditingRecipe(recipe);
-          setShowForm(true);
-        } catch (error) {
-          console.error('Failed to load recipe:', error);
-          alert('Failed to load recipe for editing. Please try again from the recipes list.');
-        }
-      })();
-      // Clear the URL parameter after triggering edit
-      setSearchParams({});
-    }
-    // Note: setSearchParams is stable and won't cause re-renders
-  }, [searchParams, setSearchParams]);
 
   function handleNewRecipe() {
     setEditingRecipe(undefined);
