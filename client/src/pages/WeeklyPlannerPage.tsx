@@ -457,7 +457,7 @@ export default function WeeklyPlannerPage() {
         </div>
 
         <div className="planner-table-wrap card">
-          <table className="table" style={{ minWidth: 800 }}>
+          <table className="table">
             <thead className="thead">
               <tr>
                 <th className="th" style={{ width: 120 }}>Meal</th>
