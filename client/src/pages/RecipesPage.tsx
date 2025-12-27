@@ -228,7 +228,7 @@ export default function RecipesPage() {
 
   useEffect(() => {
     const editId = searchParams.get('edit');
-    if (editId) {
+    if (editId && !isNaN(Number(editId))) {
       // Trigger edit mode for the specified recipe
       (async () => {
         try {
