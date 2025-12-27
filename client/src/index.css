@@ -167,7 +167,7 @@ input, select { font: inherit; }
 .day-selector-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
 
 /* Desktop table only at >=1024px */
-.planner-table-wrap { display: none; overflow-x: auto; }
+.planner-table-wrap { display: none; }
 @media (min-width: 1024px) {
   .planner-cards { display: none; }
   .planner-table-wrap { display: block; }
