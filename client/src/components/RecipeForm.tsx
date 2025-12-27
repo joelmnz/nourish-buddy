@@ -27,6 +27,16 @@ export default function RecipeForm({ recipe, onSave, onCancel }: RecipeFormProps
 
   const allSlots = ['BREAKFAST', 'SNACK_1', 'LUNCH', 'SNACK_2', 'DINNER', 'DESSERT', 'SUPPER'];
 
+  // Update form state when recipe prop changes
+  useEffect(() => {
+    if (recipe) {
+      setTitle(recipe.title);
+      setSlotKeys(recipe.slotKeys);
+      setIngredients(recipe.ingredients.length > 0 ? recipe.ingredients : [{ qty: '', item: '' }]);
+      setInstructions(recipe.instructions || '');
+    }
+  }, [recipe]);
+
   useEffect(() => {
     if (instructionsRef.current) {
       instructionsRef.current.style.height = 'auto';
