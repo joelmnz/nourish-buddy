@@ -2,12 +2,7 @@ import { Hono } from 'hono';
 import { requireApiToken } from '../middleware/apiToken.ts';
 import * as recipeService from '../services/recipes.ts';
 
-type Variables = {
-  auth: { authenticated: boolean };
-  csrfToken: string;
-};
-
-export const recipesApiRoutes = new Hono<{ Variables: Variables }>();
+export const recipesApiRoutes = new Hono();
 
 recipesApiRoutes.use('*', requireApiToken);
 

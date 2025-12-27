@@ -4,12 +4,7 @@ import { mealPlanSlots, weeklyPlans, weeklyPlanEntries, recipes } from '../db/sc
 import { requireApiToken } from '../middleware/apiToken.ts';
 import { eq, asc, and } from 'drizzle-orm';
 
-type Variables = {
-  auth: { authenticated: boolean };
-  csrfToken: string;
-};
-
-export const plannerRoutes = new Hono<{ Variables: Variables }>();
+export const plannerRoutes = new Hono();
 
 plannerRoutes.use('*', requireApiToken);
 
