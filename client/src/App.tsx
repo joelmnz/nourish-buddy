@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import AuthProvider from './hooks/AuthProvider';
+import SettingsProvider from './hooks/SettingsProvider';
 import { useAuth } from './hooks/useAuth';
 import LoginPage from './pages/LoginPage';
 import Layout from './components/Layout';
@@ -26,26 +27,28 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <Layout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<TodayPage />} />
-            <Route path="planner" element={<WeeklyPlannerPage />} />
-            <Route path="recipes" element={<RecipesPage />} />
-            <Route path="recipe/:id" element={<ViewRecipePage />} />
-            <Route path="history" element={<HistoryPage />} />
-            <Route path="weights" element={<WeightsPage />} />
-            <Route path="issues" element={<IssuesPage />} />
-            <Route path="settings" element={<SettingsPage />} />
-          </Route>
-        </Routes>
+        <SettingsProvider>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <Layout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<TodayPage />} />
+              <Route path="planner" element={<WeeklyPlannerPage />} />
+              <Route path="recipes" element={<RecipesPage />} />
+              <Route path="recipe/:id" element={<ViewRecipePage />} />
+              <Route path="history" element={<HistoryPage />} />
+              <Route path="weights" element={<WeightsPage />} />
+              <Route path="issues" element={<IssuesPage />} />
+              <Route path="settings" element={<SettingsPage />} />
+            </Route>
+          </Routes>
+        </SettingsProvider>
       </AuthProvider>
     </BrowserRouter>
   );

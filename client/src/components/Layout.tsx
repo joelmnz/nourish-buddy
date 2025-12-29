@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useSettings } from '../hooks/useSettings';
 
 function IconToday() {
   return (
@@ -48,6 +49,7 @@ function IconDots() {
 
 export default function Layout() {
   const { logout } = useAuth();
+  const { isFeatureEnabled } = useSettings();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
@@ -134,10 +136,10 @@ export default function Layout() {
 
           {/* Mobile icon nav */}
           <div className="mobile-nav" aria-label="Primary navigation">
-            <NavLink to="/" end aria-label="Today" title="Today" className={({ isActive }) => isActive ? 'active' : ''}><IconToday /></NavLink>
-            <NavLink to="/planner" aria-label="Planner" title="Planner" className={({ isActive }) => isActive ? 'active' : ''}><IconPlanner /></NavLink>
-            <NavLink to="/recipes" aria-label="Recipes" title="Recipes" className={({ isActive }) => isActive ? 'active' : ''}><IconRecipes /></NavLink>
-            <NavLink to="/issues" aria-label="Issues" title="Issues" className={({ isActive }) => isActive ? 'active' : ''}><IconIssues /></NavLink>
+            {isFeatureEnabled('TODAY') && <NavLink to="/" end aria-label="Today" title="Today" className={({ isActive }) => isActive ? 'active' : ''}><IconToday /></NavLink>}
+            {isFeatureEnabled('PLANNER') && <NavLink to="/planner" aria-label="Planner" title="Planner" className={({ isActive }) => isActive ? 'active' : ''}><IconPlanner /></NavLink>}
+            {isFeatureEnabled('RECIPES') && <NavLink to="/recipes" aria-label="Recipes" title="Recipes" className={({ isActive }) => isActive ? 'active' : ''}><IconRecipes /></NavLink>}
+            {isFeatureEnabled('ISSUES') && <NavLink to="/issues" aria-label="Issues" title="Issues" className={({ isActive }) => isActive ? 'active' : ''}><IconIssues /></NavLink>}
             <div className="overflow-menu" ref={menuRef}>
               <button
                 ref={triggerRef}
@@ -160,8 +162,8 @@ export default function Layout() {
                   aria-labelledby="overflow-trigger"
                   onKeyDown={onMenuKeyDown}
                 >
-                  <NavLink to="/history" role="menuitem">History</NavLink>
-                  <NavLink to="/weights" role="menuitem">Weights</NavLink>
+                  {isFeatureEnabled('HISTORY') && <NavLink to="/history" role="menuitem">History</NavLink>}
+                  {isFeatureEnabled('WEIGHTS') && <NavLink to="/weights" role="menuitem">Weights</NavLink>}
                   <NavLink to="/settings" role="menuitem">Settings</NavLink>
                   <button onClick={logout} role="menuitem" className="menu-logout">Logout</button>
                 </div>
@@ -171,12 +173,12 @@ export default function Layout() {
 
           {/* Desktop text nav */}
           <div className="nav" aria-label="Primary">
-            <NavLink to="/" end className={({ isActive }) => isActive ? 'active' : ''}>Today</NavLink>
-            <NavLink to="/planner" className={({ isActive }) => isActive ? 'active' : ''}>Planner</NavLink>
-            <NavLink to="/recipes" className={({ isActive }) => isActive ? 'active' : ''}>Recipes</NavLink>
-            <NavLink to="/history" className={({ isActive }) => isActive ? 'active' : ''}>History</NavLink>
-            <NavLink to="/weights" className={({ isActive }) => isActive ? 'active' : ''}>Weights</NavLink>
-            <NavLink to="/issues" className={({ isActive }) => isActive ? 'active' : ''}>Issues</NavLink>
+            {isFeatureEnabled('TODAY') && <NavLink to="/" end className={({ isActive }) => isActive ? 'active' : ''}>Today</NavLink>}
+            {isFeatureEnabled('PLANNER') && <NavLink to="/planner" className={({ isActive }) => isActive ? 'active' : ''}>Planner</NavLink>}
+            {isFeatureEnabled('RECIPES') && <NavLink to="/recipes" className={({ isActive }) => isActive ? 'active' : ''}>Recipes</NavLink>}
+            {isFeatureEnabled('HISTORY') && <NavLink to="/history" className={({ isActive }) => isActive ? 'active' : ''}>History</NavLink>}
+            {isFeatureEnabled('WEIGHTS') && <NavLink to="/weights" className={({ isActive }) => isActive ? 'active' : ''}>Weights</NavLink>}
+            {isFeatureEnabled('ISSUES') && <NavLink to="/issues" className={({ isActive }) => isActive ? 'active' : ''}>Issues</NavLink>}
             <NavLink to="/settings" className={({ isActive }) => isActive ? 'active' : ''}>Settings</NavLink>
           </div>
           <button onClick={logout} className="btn btn-ghost logout-desktop">Logout</button>

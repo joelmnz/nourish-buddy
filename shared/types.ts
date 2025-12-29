@@ -14,6 +14,17 @@ export type SlotKey = typeof SLOT_KEYS[number];
 
 export const slotKeyEnum = z.enum(SLOT_KEYS);
 
+export const FEATURE_KEYS = [
+  'TODAY',
+  'PLANNER',
+  'RECIPES',
+  'HISTORY',
+  'WEIGHTS',
+  'ISSUES',
+] as const;
+
+export type FeatureKey = typeof FEATURE_KEYS[number];
+
 export type TimeFormat = '12' | '24';
 
 export interface Settings {

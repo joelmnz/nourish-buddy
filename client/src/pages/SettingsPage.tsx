@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { api } from '../lib/api';
 import { getLocalDateString } from '../lib/date-utils';
+import { useSettings } from '../hooks/useSettings';
 import type { TimeFormat } from '../../../shared/types';
 
 function urlBase64ToUint8Array(base64String?: string) {
@@ -29,6 +30,7 @@ type PushSubscription = {
 };
 
 export default function SettingsPage() {
+  const { isFeatureEnabled, toggleFeature, loading: featuresLoading } = useSettings();
   const [settings, setSettings] = useState<{ remindersEnabled: boolean; timeFormat: TimeFormat; firstDayOfWeek: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -341,6 +343,133 @@ export default function SettingsPage() {
           </select>
         </div>
         {saving && <div className="mt-3 text-sm" style={{ color: 'rgb(74, 222, 128)' }}>Saving...</div>}
+      </div>
+
+      <div className="card padded mb-4">
+        <h2 className="h2">Features</h2>
+        <p className="text-sm text-muted mb-3">
+          Control which menu items appear in the navigation. Pages remain accessible via direct URL.
+        </p>
+
+        <div className="space-y-3">
+          <div className="space-between">
+            <div>
+              <div className="font-medium">Today</div>
+              <div className="text-sm text-muted">Daily meal tracking</div>
+            </div>
+            <button
+              onClick={() => toggleFeature('TODAY', !isFeatureEnabled('TODAY'))}
+              className="toggle-btn"
+              aria-label="Toggle Today feature"
+              disabled={featuresLoading}
+            >
+              <div className={`toggle ${isFeatureEnabled('TODAY') ? 'on' : ''}`}>
+                <div className="toggle-knob" />
+              </div>
+            </button>
+          </div>
+
+          <div className="space-between">
+            <div>
+              <div className="font-medium">Planner</div>
+              <div className="text-sm text-muted">Weekly meal planning</div>
+            </div>
+            <button
+              onClick={() => toggleFeature('PLANNER', !isFeatureEnabled('PLANNER'))}
+              className="toggle-btn"
+              aria-label="Toggle Planner feature"
+              disabled={featuresLoading}
+            >
+              <div className={`toggle ${isFeatureEnabled('PLANNER') ? 'on' : ''}`}>
+                <div className="toggle-knob" />
+              </div>
+            </button>
+          </div>
+
+          <div className="space-between">
+            <div>
+              <div className="font-medium">Recipes</div>
+              <div className="text-sm text-muted">Recipe management</div>
+            </div>
+            <button
+              onClick={() => toggleFeature('RECIPES', !isFeatureEnabled('RECIPES'))}
+              className="toggle-btn"
+              aria-label="Toggle Recipes feature"
+              disabled={featuresLoading}
+            >
+              <div className={`toggle ${isFeatureEnabled('RECIPES') ? 'on' : ''}`}>
+                <div className="toggle-knob" />
+              </div>
+            </button>
+          </div>
+
+          <div className="space-between">
+            <div>
+              <div className="font-medium">History</div>
+              <div className="text-sm text-muted">Meal history logs</div>
+            </div>
+            <button
+              onClick={() => toggleFeature('HISTORY', !isFeatureEnabled('HISTORY'))}
+              className="toggle-btn"
+              aria-label="Toggle History feature"
+              disabled={featuresLoading}
+            >
+              <div className={`toggle ${isFeatureEnabled('HISTORY') ? 'on' : ''}`}>
+                <div className="toggle-knob" />
+              </div>
+            </button>
+          </div>
+
+          <div className="space-between">
+            <div>
+              <div className="font-medium">Weights</div>
+              <div className="text-sm text-muted">Weight tracking</div>
+            </div>
+            <button
+              onClick={() => toggleFeature('WEIGHTS', !isFeatureEnabled('WEIGHTS'))}
+              className="toggle-btn"
+              aria-label="Toggle Weights feature"
+              disabled={featuresLoading}
+            >
+              <div className={`toggle ${isFeatureEnabled('WEIGHTS') ? 'on' : ''}`}>
+                <div className="toggle-knob" />
+              </div>
+            </button>
+          </div>
+
+          <div className="space-between">
+            <div>
+              <div className="font-medium">Issues</div>
+              <div className="text-sm text-muted">Health issue tracking</div>
+            </div>
+            <button
+              onClick={() => toggleFeature('ISSUES', !isFeatureEnabled('ISSUES'))}
+              className="toggle-btn"
+              aria-label="Toggle Issues feature"
+              disabled={featuresLoading}
+            >
+              <div className={`toggle ${isFeatureEnabled('ISSUES') ? 'on' : ''}`}>
+                <div className="toggle-knob" />
+              </div>
+            </button>
+          </div>
+
+          <div className="space-between" style={{ opacity: 0.5 }}>
+            <div>
+              <div className="font-medium">Settings</div>
+              <div className="text-sm text-muted">Always visible</div>
+            </div>
+            <button
+              className="toggle-btn"
+              aria-label="Settings always visible"
+              disabled
+            >
+              <div className="toggle on">
+                <div className="toggle-knob" />
+              </div>
+            </button>
+          </div>
+        </div>
       </div>
 
       <div className="card padded mb-4">

@@ -31,6 +31,7 @@ export async function seedDatabase() {
       remindersEnabled: false,
       timeFormat: '12',
       firstDayOfWeek: 0,
+      featuresEnabled: 'TODAY,PLANNER,RECIPES,HISTORY,WEIGHTS,ISSUES',
     });
     console.log('✓ Seeded default settings');
   }
@@ -77,6 +78,12 @@ export async function runMigrations() {
   if (!hasFirstDay) {
     sqlite.run(`ALTER TABLE settings ADD COLUMN first_day_of_week INTEGER NOT NULL DEFAULT 0 CHECK(first_day_of_week BETWEEN 0 AND 6)`);
     console.log('✓ Migrated: added first_day_of_week to settings');
+  }
+
+  const hasFeaturesEnabled = settingsCols.some((c) => c.name === 'features_enabled');
+  if (!hasFeaturesEnabled) {
+    sqlite.run(`ALTER TABLE settings ADD COLUMN features_enabled TEXT NOT NULL DEFAULT 'TODAY,PLANNER,RECIPES,HISTORY,WEIGHTS,ISSUES'`);
+    console.log('✓ Migrated: added features_enabled to settings');
   }
 
   sqlite.run(`
