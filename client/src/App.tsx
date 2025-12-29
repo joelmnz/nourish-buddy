@@ -27,28 +27,28 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <SettingsProvider>
-          <Routes>
-            <Route path="/login" element={<LoginPage />} />
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <SettingsProvider>
                   <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<TodayPage />} />
-              <Route path="planner" element={<WeeklyPlannerPage />} />
-              <Route path="recipes" element={<RecipesPage />} />
-              <Route path="recipe/:id" element={<ViewRecipePage />} />
-              <Route path="history" element={<HistoryPage />} />
-              <Route path="weights" element={<WeightsPage />} />
-              <Route path="issues" element={<IssuesPage />} />
-              <Route path="settings" element={<SettingsPage />} />
-            </Route>
-          </Routes>
-        </SettingsProvider>
+                </SettingsProvider>
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<TodayPage />} />
+            <Route path="planner" element={<WeeklyPlannerPage />} />
+            <Route path="recipes" element={<RecipesPage />} />
+            <Route path="recipe/:id" element={<ViewRecipePage />} />
+            <Route path="history" element={<HistoryPage />} />
+            <Route path="weights" element={<WeightsPage />} />
+            <Route path="issues" element={<IssuesPage />} />
+            <Route path="settings" element={<SettingsPage />} />
+          </Route>
+        </Routes>
       </AuthProvider>
     </BrowserRouter>
   );
