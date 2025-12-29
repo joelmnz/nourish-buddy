@@ -106,6 +106,7 @@ If you open port 8080 in a browser you’re hitting the API, not a separate UI. 
 - `bun run db:migrate` — run migrations manually
 - `bun run db:studio` — open Drizzle Studio
 - `bun run typecheck` — type-check both server and client
+- `bun run precommit` — validate before pushing (updates lockfiles, typecheck, tests, Docker build)
 
 From inside `client/` you can also run:
 

@@ -15,7 +15,8 @@
     "db:migrate": "bun run server/db/migrate.ts",
     "db:studio": "drizzle-kit studio",
     "typecheck": "tsc --noEmit && cd client && bunx tsc --noEmit",
-    "test": "bun test"
+    "test": "bun test",
+    "precommit": "bash scripts/precommit.sh"
   },
   "devDependencies": {
     "@resvg/resvg-js": "^2.6.2",
