@@ -58,6 +58,12 @@ input, select { font: inherit; }
   height: 60px;
 }
 .brand { font-weight: 700; font-size: 18px; letter-spacing: 0.3px; }
+.brand-full { display: inline; }
+.brand-short { display: none; }
+@media (max-width: 767px) {
+  .brand-full { display: none; }
+  .brand-short { display: inline; }
+}
 
 /* Mobile icon nav */
 .mobile-nav { display: flex; align-items: center; gap: 8px; }

@@ -132,7 +132,12 @@ export default function Layout() {
     <div className="app">
       <nav className="topbar">
         <div className="container topbar-inner">
-          <div className="brand"><NavLink to="/">Nourish Buddy</NavLink></div>
+          <div className="brand">
+            <NavLink to="/">
+              <span className="brand-full">Nourish Buddy</span>
+              <span className="brand-short">nB</span>
+            </NavLink>
+          </div>
 
           {/* Mobile icon nav */}
           <div className="mobile-nav" aria-label="Primary navigation">
