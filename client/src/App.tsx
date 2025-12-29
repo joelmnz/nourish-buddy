@@ -4,6 +4,7 @@ import SettingsProvider from './hooks/SettingsProvider';
 import { useAuth } from './hooks/useAuth';
 import LoginPage from './pages/LoginPage';
 import Layout from './components/Layout';
+import HomeRedirect from './components/HomeRedirect';
 import TodayPage from './pages/TodayPage';
 import WeeklyPlannerPage from './pages/WeeklyPlannerPage';
 import RecipesPage from './pages/RecipesPage';
@@ -39,7 +40,8 @@ function App() {
               </ProtectedRoute>
             }
           >
-            <Route index element={<TodayPage />} />
+            <Route index element={<HomeRedirect />} />
+            <Route path="today" element={<TodayPage />} />
             <Route path="planner" element={<WeeklyPlannerPage />} />
             <Route path="recipes" element={<RecipesPage />} />
             <Route path="recipe/:id" element={<ViewRecipePage />} />

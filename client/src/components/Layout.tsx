@@ -136,7 +136,7 @@ export default function Layout() {
 
           {/* Mobile icon nav */}
           <div className="mobile-nav" aria-label="Primary navigation">
-            {isFeatureEnabled('TODAY') && <NavLink to="/" end aria-label="Today" title="Today" className={({ isActive }) => isActive ? 'active' : ''}><IconToday /></NavLink>}
+            {isFeatureEnabled('TODAY') && <NavLink to="/today" aria-label="Today" title="Today" className={({ isActive }) => isActive ? 'active' : ''}><IconToday /></NavLink>}
             {isFeatureEnabled('PLANNER') && <NavLink to="/planner" aria-label="Planner" title="Planner" className={({ isActive }) => isActive ? 'active' : ''}><IconPlanner /></NavLink>}
             {isFeatureEnabled('RECIPES') && <NavLink to="/recipes" aria-label="Recipes" title="Recipes" className={({ isActive }) => isActive ? 'active' : ''}><IconRecipes /></NavLink>}
             {isFeatureEnabled('ISSUES') && <NavLink to="/issues" aria-label="Issues" title="Issues" className={({ isActive }) => isActive ? 'active' : ''}><IconIssues /></NavLink>}
@@ -173,7 +173,7 @@ export default function Layout() {
 
           {/* Desktop text nav */}
           <div className="nav" aria-label="Primary">
-            {isFeatureEnabled('TODAY') && <NavLink to="/" end className={({ isActive }) => isActive ? 'active' : ''}>Today</NavLink>}
+            {isFeatureEnabled('TODAY') && <NavLink to="/today" className={({ isActive }) => isActive ? 'active' : ''}>Today</NavLink>}
             {isFeatureEnabled('PLANNER') && <NavLink to="/planner" className={({ isActive }) => isActive ? 'active' : ''}>Planner</NavLink>}
             {isFeatureEnabled('RECIPES') && <NavLink to="/recipes" className={({ isActive }) => isActive ? 'active' : ''}>Recipes</NavLink>}
             {isFeatureEnabled('HISTORY') && <NavLink to="/history" className={({ isActive }) => isActive ? 'active' : ''}>History</NavLink>}
