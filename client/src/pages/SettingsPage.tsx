@@ -2,7 +2,17 @@ import { useState, useEffect } from 'react';
 import { api } from '../lib/api';
 import { getLocalDateString } from '../lib/date-utils';
 import { useSettings } from '../hooks/useSettings';
-import type { TimeFormat } from '../../../shared/types';
+import SettingsToggle from '../components/SettingsToggle';
+import type { FeatureKey, TimeFormat } from '../../../shared/types';
+
+const FEATURE_CONFIG: Array<{ key: FeatureKey; title: string; description: string }> = [
+  { key: 'TODAY', title: 'Today', description: 'Daily meal tracking' },
+  { key: 'PLANNER', title: 'Planner', description: 'Weekly meal planning' },
+  { key: 'RECIPES', title: 'Recipes', description: 'Recipe management' },
+  { key: 'HISTORY', title: 'History', description: 'Meal history logs' },
+  { key: 'WEIGHTS', title: 'Weights', description: 'Weight tracking' },
+  { key: 'ISSUES', title: 'Issues', description: 'Health issue tracking' },
+];
 
 function urlBase64ToUint8Array(base64String?: string) {
   if (!base64String) return new Uint8Array();
@@ -290,40 +300,22 @@ export default function SettingsPage() {
 
       <div className="card padded mb-4">
         <h2 className="h2">Preferences</h2>
-        <div className="space-between mt-3">
-          <div>
-            <div className="font-medium">Reminders</div>
-            <div className="text-sm text-muted">Enable meal time reminders</div>
-          </div>
-          <button
-            onClick={() => updateSetting('remindersEnabled', !settings.remindersEnabled)}
-            className="toggle-btn"
-            role="switch"
-            aria-checked={settings.remindersEnabled}
-            aria-label="Toggle reminders"
-          >
-            <div className={`toggle ${settings.remindersEnabled ? 'on' : ''}`}>
-              <div className="toggle-knob" />
-            </div>
-          </button>
+        <div className="mt-3">
+          <SettingsToggle
+            title="Reminders"
+            description="Enable meal time reminders"
+            checked={settings.remindersEnabled}
+            onChange={(checked) => updateSetting('remindersEnabled', checked)}
+          />
         </div>
 
-        <div className="space-between mt-3">
-          <div>
-            <div className="font-medium">24-Hour Time</div>
-            <div className="text-sm text-muted">Use 24-hour time format</div>
-          </div>
-          <button
-            onClick={() => updateSetting('timeFormat', settings.timeFormat === '12')}
-            className="toggle-btn"
-            role="switch"
-            aria-checked={settings.timeFormat === '24'}
-            aria-label="Toggle 24-hour time"
-          >
-            <div className={`toggle ${settings.timeFormat === '24' ? 'on' : ''}`}>
-              <div className="toggle-knob" />
-            </div>
-          </button>
+        <div className="mt-3">
+          <SettingsToggle
+            title="24-Hour Time"
+            description="Use 24-hour time format"
+            checked={settings.timeFormat === '24'}
+            onChange={(checked) => updateSetting('timeFormat', checked)}
+          />
         </div>
 
         <div className="mt-3">
@@ -356,135 +348,16 @@ export default function SettingsPage() {
         </p>
 
         <div className="space-y-3">
-          <div className="space-between">
-            <div>
-              <div className="font-medium">Today</div>
-              <div className="text-sm text-muted">Daily meal tracking</div>
-            </div>
-            <button
-              onClick={() => toggleFeature('TODAY', !isFeatureEnabled('TODAY'))}
-              className="toggle-btn"
-              role="switch"
-              aria-checked={isFeatureEnabled('TODAY')}
-              aria-label="Toggle Today feature"
+          {FEATURE_CONFIG.map(({ key, title, description }) => (
+            <SettingsToggle
+              key={key}
+              title={title}
+              description={description}
+              checked={isFeatureEnabled(key)}
+              onChange={(checked) => toggleFeature(key, checked)}
               disabled={featuresLoading}
-            >
-              <div className={`toggle ${isFeatureEnabled('TODAY') ? 'on' : ''}`}>
-                <div className="toggle-knob" />
-              </div>
-            </button>
-          </div>
-
-          <div className="space-between">
-            <div>
-              <div className="font-medium">Planner</div>
-              <div className="text-sm text-muted">Weekly meal planning</div>
-            </div>
-            <button
-              onClick={() => toggleFeature('PLANNER', !isFeatureEnabled('PLANNER'))}
-              className="toggle-btn"
-              role="switch"
-              aria-checked={isFeatureEnabled('PLANNER')}
-              aria-label="Toggle Planner feature"
-              disabled={featuresLoading}
-            >
-              <div className={`toggle ${isFeatureEnabled('PLANNER') ? 'on' : ''}`}>
-                <div className="toggle-knob" />
-              </div>
-            </button>
-          </div>
-
-          <div className="space-between">
-            <div>
-              <div className="font-medium">Recipes</div>
-              <div className="text-sm text-muted">Recipe management</div>
-            </div>
-            <button
-              onClick={() => toggleFeature('RECIPES', !isFeatureEnabled('RECIPES'))}
-              className="toggle-btn"
-              role="switch"
-              aria-checked={isFeatureEnabled('RECIPES')}
-              aria-label="Toggle Recipes feature"
-              disabled={featuresLoading}
-            >
-              <div className={`toggle ${isFeatureEnabled('RECIPES') ? 'on' : ''}`}>
-                <div className="toggle-knob" />
-              </div>
-            </button>
-          </div>
-
-          <div className="space-between">
-            <div>
-              <div className="font-medium">History</div>
-              <div className="text-sm text-muted">Meal history logs</div>
-            </div>
-            <button
-              onClick={() => toggleFeature('HISTORY', !isFeatureEnabled('HISTORY'))}
-              className="toggle-btn"
-              role="switch"
-              aria-checked={isFeatureEnabled('HISTORY')}
-              aria-label="Toggle History feature"
-              disabled={featuresLoading}
-            >
-              <div className={`toggle ${isFeatureEnabled('HISTORY') ? 'on' : ''}`}>
-                <div className="toggle-knob" />
-              </div>
-            </button>
-          </div>
-
-          <div className="space-between">
-            <div>
-              <div className="font-medium">Weights</div>
-              <div className="text-sm text-muted">Weight tracking</div>
-            </div>
-            <button
-              onClick={() => toggleFeature('WEIGHTS', !isFeatureEnabled('WEIGHTS'))}
-              className="toggle-btn"
-              role="switch"
-              aria-checked={isFeatureEnabled('WEIGHTS')}
-              aria-label="Toggle Weights feature"
-              disabled={featuresLoading}
-            >
-              <div className={`toggle ${isFeatureEnabled('WEIGHTS') ? 'on' : ''}`}>
-                <div className="toggle-knob" />
-              </div>
-            </button>
-          </div>
-
-          <div className="space-between">
-            <div>
-              <div className="font-medium">Issues</div>
-              <div className="text-sm text-muted">Health issue tracking</div>
-            </div>
-            <button
-              onClick={() => toggleFeature('ISSUES', !isFeatureEnabled('ISSUES'))}
-              className="toggle-btn"
-              role="switch"
-              aria-checked={isFeatureEnabled('ISSUES')}
-              aria-label="Toggle Issues feature"
-              disabled={featuresLoading}
-            >
-              <div className={`toggle ${isFeatureEnabled('ISSUES') ? 'on' : ''}`}>
-                <div className="toggle-knob" />
-              </div>
-            </button>
-          </div>
-
-          <div className="space-between" style={{ opacity: 0.5 }}>
-            <div>
-              <div className="font-medium">Settings</div>
-              <div className="text-sm text-muted">Always visible</div>
-            </div>
-            <button
-              className="toggle-btn"
-              aria-label="Settings always visible"
-              disabled
-            >
-              <div className="toggle on">
-                <div className="toggle-knob" />
-              </div>
-            </button>
-          </div>
+            />
+          ))}
         </div>
       </div>
 
