@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { api } from '../lib/api';
@@ -14,6 +14,7 @@ interface RecipeDetail {
 
 export default function ViewRecipePage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [recipe, setRecipe] = useState<RecipeDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -51,6 +52,12 @@ export default function ViewRecipePage() {
     <div className="card padded" style={{ maxWidth: 800, margin: '0 auto' }}>
       <div className="space-between mb-2">
         <h1 className="h1" style={{ marginBottom: 0 }}>{recipe.title}</h1>
+        <button
+          onClick={() => navigate(`/recipe/edit/${id}`)}
+          className="btn btn-ghost"
+        >
+          Edit
+        </button>
       </div>
 
       <div className="mb-4">
