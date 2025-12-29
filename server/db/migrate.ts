@@ -4,6 +4,7 @@ import { settings, mealPlanSlots, weeklyPlans } from './schema.ts';
 import { getEnv } from '../config/env.ts';
 import { mkdir } from 'node:fs/promises';
 import { dirname } from 'node:path';
+import { DEFAULT_FEATURES_ENABLED } from '../../shared/types.ts';
 
 const DEFAULT_MEAL_SLOTS: Array<{
   slotKey: 'BREAKFAST' | 'SNACK_1' | 'LUNCH' | 'SNACK_2' | 'DINNER' | 'DESSERT' | 'SUPPER';
@@ -31,7 +32,7 @@ export async function seedDatabase() {
       remindersEnabled: false,
       timeFormat: '12',
       firstDayOfWeek: 0,
-      featuresEnabled: 'TODAY,PLANNER,RECIPES,HISTORY,WEIGHTS,ISSUES',
+      featuresEnabled: DEFAULT_FEATURES_ENABLED,
     });
     console.log('✓ Seeded default settings');
   }
@@ -82,7 +83,7 @@ export async function runMigrations() {
 
   const hasFeaturesEnabled = settingsCols.some((c) => c.name === 'features_enabled');
   if (!hasFeaturesEnabled) {
-    sqlite.run(`ALTER TABLE settings ADD COLUMN features_enabled TEXT NOT NULL DEFAULT 'TODAY,PLANNER,RECIPES,HISTORY,WEIGHTS,ISSUES'`);
+    sqlite.run(`ALTER TABLE settings ADD COLUMN features_enabled TEXT NOT NULL DEFAULT '${DEFAULT_FEATURES_ENABLED}'`);
     console.log('✓ Migrated: added features_enabled to settings');
   }
 

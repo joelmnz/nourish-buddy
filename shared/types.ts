@@ -25,6 +25,8 @@ export const FEATURE_KEYS = [
 
 export type FeatureKey = typeof FEATURE_KEYS[number];
 
+export const DEFAULT_FEATURES_ENABLED = FEATURE_KEYS.join(',');
+
 export type TimeFormat = '12' | '24';
 
 export interface Settings {

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import { api } from '../lib/api';
 import { SettingsContext } from './settings-context';
+import { FEATURE_KEYS } from '../../../shared/types';
 import type { FeatureKey } from '../../../shared/types';
 
 export default function SettingsProvider({ children }: { children: ReactNode }) {
@@ -16,7 +17,7 @@ export default function SettingsProvider({ children }: { children: ReactNode }) 
     } catch (error) {
       console.error('Failed to load settings:', error);
       // Default to all features enabled on error
-      setFeaturesEnabled(new Set(['TODAY', 'PLANNER', 'RECIPES', 'HISTORY', 'WEIGHTS', 'ISSUES']));
+      setFeaturesEnabled(new Set([...FEATURE_KEYS]));
     } finally {
       setLoading(false);
     }

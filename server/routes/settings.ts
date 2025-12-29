@@ -4,6 +4,7 @@ import { getDb } from '../db/index.ts';
 import { settings } from '../db/schema.ts';
 import { requireAuth } from '../middleware/auth.ts';
 import { rebuildAllSchedules } from '../services/scheduler.ts';
+import { DEFAULT_FEATURES_ENABLED } from '../../shared/types.ts';
 
 const updateSettingsSchema = z.object({
   reminders_enabled: z.boolean().optional(),
@@ -30,7 +31,7 @@ settingsRoutes.get('/', async (c) => {
       reminders_enabled: false,
       time_format: '12' as const,
       first_day_of_week: 0,
-      features_enabled: 'TODAY,PLANNER,RECIPES,HISTORY,WEIGHTS,ISSUES',
+      features_enabled: DEFAULT_FEATURES_ENABLED,
     });
   }
 
@@ -39,7 +40,7 @@ settingsRoutes.get('/', async (c) => {
     reminders_enabled: row.remindersEnabled,
     time_format: row.timeFormat,
     first_day_of_week: row.firstDayOfWeek,
-    features_enabled: row.featuresEnabled || 'TODAY,PLANNER,RECIPES,HISTORY,WEIGHTS,ISSUES',
+    features_enabled: row.featuresEnabled || DEFAULT_FEATURES_ENABLED,
   });
 });
 
@@ -61,7 +62,7 @@ settingsRoutes.put('/', async (c) => {
       remindersEnabled: data.reminders_enabled ?? false,
       timeFormat: data.time_format ?? '12',
       firstDayOfWeek: data.first_day_of_week ?? 0,
-      featuresEnabled: data.features_enabled ?? 'TODAY,PLANNER,RECIPES,HISTORY,WEIGHTS,ISSUES',
+      featuresEnabled: data.features_enabled ?? DEFAULT_FEATURES_ENABLED,
     });
   } else {
     if (Object.keys(updateData).length > 0) {
