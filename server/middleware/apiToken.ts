@@ -9,9 +9,9 @@ import { getEnv } from '../config/env.ts';
 export async function requireApiToken(c: Context, next: Next) {
   const env = getEnv();
   
-  // If no API_TOKEN is configured, deny access
+  // If no API_TOKEN is configured, deny access without revealing configuration details
   if (!env.API_TOKEN) {
-    return c.json({ error: 'API token authentication is not configured' }, 500);
+    return c.json({ error: 'Unauthorized' }, 401);
   }
   
   const authHeader = c.req.header('Authorization');
