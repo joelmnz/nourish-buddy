@@ -19,6 +19,8 @@ import { pushRoutes } from './routes/push.ts';
 import { issuesRoutes } from './routes/issues.ts';
 import { recipesRoutes } from './routes/recipes.ts';
 import { weeklyPlansRoutes } from './routes/weekly-plans.ts';
+import { plannerRoutes } from './routes/planner.ts';
+import { recipesApiRoutes } from './routes/recipiesApi.ts';
 import { runMigrations } from './db/migrate.ts';
 import { cleanupExpiredSessions } from './services/session.ts';
 import { initializeScheduler } from './services/scheduler.ts';
@@ -40,6 +42,11 @@ app.onError(errorHandler);
 
 app.get('/health', (c) => c.json({ status: 'ok', timestamp: new Date().toISOString() }));
 
+// API routes with token-based authentication (no CSRF required)
+app.route('/api/recipies', recipesApiRoutes);
+app.route('/api/planner', plannerRoutes);
+
+// Session-based routes (require login and CSRF)
 app.route('/api/auth', authRoutes);
 app.route('/api/settings', settingsRoutes);
 app.route('/api/meal-plan', mealPlanRoutes);

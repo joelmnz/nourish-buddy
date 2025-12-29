@@ -15,6 +15,7 @@ const envSchema = z.object({
   INSECURE_DISABLE_ORIGIN_CHECKS: z.coerce.boolean().default(false),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.coerce.number().int().positive().default(8080),
+  API_TOKEN: z.string().min(1).optional(),
 }).refine(
   (data) => data.ADMIN_PASSWORD_HASH || data.ADMIN_PASSWORD,
   {
