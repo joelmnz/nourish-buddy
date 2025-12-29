@@ -1,11 +1,13 @@
 import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core';
 import { sql } from 'drizzle-orm';
+import { DEFAULT_FEATURES_ENABLED } from '../../shared/types.ts';
 
 export const settings = sqliteTable('settings', {
   id: integer('id').primaryKey(),
   remindersEnabled: integer('reminders_enabled', { mode: 'boolean' }).notNull().default(false),
   timeFormat: text('time_format', { enum: ['12', '24'] }).notNull().default('12'),
   firstDayOfWeek: integer('first_day_of_week').notNull().default(0),
+  featuresEnabled: text('features_enabled').notNull().default(DEFAULT_FEATURES_ENABLED),
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
   updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
 });

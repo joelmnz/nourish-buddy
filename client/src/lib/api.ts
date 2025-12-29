@@ -70,16 +70,17 @@ export const api = {
 
   settings: {
     async get() {
-      const data = await request<{ reminders_enabled: boolean; time_format: '12' | '24'; first_day_of_week: number }>('/api/settings');
-      return { remindersEnabled: data.reminders_enabled, timeFormat: data.time_format, firstDayOfWeek: data.first_day_of_week };
+      const data = await request<{ reminders_enabled: boolean; time_format: '12' | '24'; first_day_of_week: number; features_enabled: string }>('/api/settings');
+      return { remindersEnabled: data.reminders_enabled, timeFormat: data.time_format, firstDayOfWeek: data.first_day_of_week, featuresEnabled: data.features_enabled };
     },
-    async update(data: Partial<{ remindersEnabled: boolean; timeFormat: '12' | '24'; firstDayOfWeek: number }>) {
+    async update(data: Partial<{ remindersEnabled: boolean; timeFormat: '12' | '24'; firstDayOfWeek: number; featuresEnabled: string }>) {
       return request('/api/settings', {
         method: 'PUT',
         body: JSON.stringify({
           ...(data.remindersEnabled !== undefined ? { reminders_enabled: data.remindersEnabled } : {}),
           ...(data.timeFormat ? { time_format: data.timeFormat } : {}),
           ...(data.firstDayOfWeek !== undefined ? { first_day_of_week: data.firstDayOfWeek } : {}),
+          ...(data.featuresEnabled !== undefined ? { features_enabled: data.featuresEnabled } : {}),
         }),
       });
     },

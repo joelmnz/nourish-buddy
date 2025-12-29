@@ -58,9 +58,15 @@ input, select { font: inherit; }
   height: 60px;
 }
 .brand { font-weight: 700; font-size: 18px; letter-spacing: 0.3px; }
+.brand-full { display: inline; }
+.brand-short { display: none; }
+@media (max-width: 767px) {
+  .brand-full { display: none; }
+  .brand-short { display: inline; }
+}
 
 /* Mobile icon nav */
-.mobile-nav { display: flex; align-items: center; gap: 8px; }
+.mobile-nav { display: flex; align-items: center; gap: 6px; flex: 1; justify-content: flex-end; }
 .mobile-nav a, .mobile-nav .overflow-trigger { width: 40px; height: 40px; display: inline-grid; place-items: center; color: var(--muted); background: transparent; border: 0; border-radius: 10px; outline: none; }
 .mobile-nav a.active { background: #111827; color: var(--text); }
 .mobile-nav a:hover, .mobile-nav .overflow-trigger:hover, .mobile-nav a:focus-visible, .mobile-nav .overflow-trigger:focus-visible { background: rgba(31,41,55,.7); color: var(--text); }
