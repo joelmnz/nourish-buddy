@@ -298,6 +298,8 @@ export default function SettingsPage() {
           <button
             onClick={() => updateSetting('remindersEnabled', !settings.remindersEnabled)}
             className="toggle-btn"
+            role="switch"
+            aria-checked={settings.remindersEnabled}
             aria-label="Toggle reminders"
           >
             <div className={`toggle ${settings.remindersEnabled ? 'on' : ''}`}>
@@ -314,6 +316,8 @@ export default function SettingsPage() {
           <button
             onClick={() => updateSetting('timeFormat', settings.timeFormat === '12')}
             className="toggle-btn"
+            role="switch"
+            aria-checked={settings.timeFormat === '24'}
             aria-label="Toggle 24-hour time"
           >
             <div className={`toggle ${settings.timeFormat === '24' ? 'on' : ''}`}>
@@ -360,6 +364,8 @@ export default function SettingsPage() {
             <button
               onClick={() => toggleFeature('TODAY', !isFeatureEnabled('TODAY'))}
               className="toggle-btn"
+              role="switch"
+              aria-checked={isFeatureEnabled('TODAY')}
               aria-label="Toggle Today feature"
               disabled={featuresLoading}
             >
@@ -377,6 +383,8 @@ export default function SettingsPage() {
             <button
               onClick={() => toggleFeature('PLANNER', !isFeatureEnabled('PLANNER'))}
               className="toggle-btn"
+              role="switch"
+              aria-checked={isFeatureEnabled('PLANNER')}
               aria-label="Toggle Planner feature"
               disabled={featuresLoading}
             >
@@ -394,6 +402,8 @@ export default function SettingsPage() {
             <button
               onClick={() => toggleFeature('RECIPES', !isFeatureEnabled('RECIPES'))}
               className="toggle-btn"
+              role="switch"
+              aria-checked={isFeatureEnabled('RECIPES')}
               aria-label="Toggle Recipes feature"
               disabled={featuresLoading}
             >
@@ -411,6 +421,8 @@ export default function SettingsPage() {
             <button
               onClick={() => toggleFeature('HISTORY', !isFeatureEnabled('HISTORY'))}
               className="toggle-btn"
+              role="switch"
+              aria-checked={isFeatureEnabled('HISTORY')}
               aria-label="Toggle History feature"
               disabled={featuresLoading}
             >
@@ -428,6 +440,8 @@ export default function SettingsPage() {
             <button
               onClick={() => toggleFeature('WEIGHTS', !isFeatureEnabled('WEIGHTS'))}
               className="toggle-btn"
+              role="switch"
+              aria-checked={isFeatureEnabled('WEIGHTS')}
               aria-label="Toggle Weights feature"
               disabled={featuresLoading}
             >
@@ -445,6 +459,8 @@ export default function SettingsPage() {
             <button
               onClick={() => toggleFeature('ISSUES', !isFeatureEnabled('ISSUES'))}
               className="toggle-btn"
+              role="switch"
+              aria-checked={isFeatureEnabled('ISSUES')}
               aria-label="Toggle Issues feature"
               disabled={featuresLoading}
             >
@@ -666,6 +682,8 @@ export default function SettingsPage() {
                       <button
                         onClick={() => toggleDeviceEnabled(sub.id, !sub.enabled)}
                         className="toggle-btn"
+                        role="switch"
+                        aria-checked={sub.enabled}
                         aria-label="Toggle device notifications"
                       >
                         <div className={`toggle ${sub.enabled ? 'on' : ''}`}>
