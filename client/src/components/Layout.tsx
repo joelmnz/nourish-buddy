@@ -37,6 +37,23 @@ function IconIssues() {
     </svg>
   );
 }
+function IconHistory() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <circle cx="12" cy="12" r="10"/>
+      <polyline points="12 6 12 12 16 14"/>
+    </svg>
+  );
+}
+function IconWeights() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M6 18L18 6"/>
+      <path d="M8 8a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/>
+      <path d="M20 16a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/>
+    </svg>
+  );
+}
 function IconDots() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -145,6 +162,8 @@ export default function Layout() {
             {isFeatureEnabled('PLANNER') && <NavLink to="/planner" aria-label="Planner" title="Planner" className={({ isActive }) => isActive ? 'active' : ''}><IconPlanner /></NavLink>}
             {isFeatureEnabled('RECIPES') && <NavLink to="/recipes" aria-label="Recipes" title="Recipes" className={({ isActive }) => isActive ? 'active' : ''}><IconRecipes /></NavLink>}
             {isFeatureEnabled('ISSUES') && <NavLink to="/issues" aria-label="Issues" title="Issues" className={({ isActive }) => isActive ? 'active' : ''}><IconIssues /></NavLink>}
+            {isFeatureEnabled('HISTORY') && <NavLink to="/history" aria-label="History" title="History" className={({ isActive }) => isActive ? 'active' : ''}><IconHistory /></NavLink>}
+            {isFeatureEnabled('WEIGHTS') && <NavLink to="/weights" aria-label="Weights" title="Weights" className={({ isActive }) => isActive ? 'active' : ''}><IconWeights /></NavLink>}
             <div className="overflow-menu" ref={menuRef}>
               <button
                 ref={triggerRef}
@@ -167,8 +186,6 @@ export default function Layout() {
                   aria-labelledby="overflow-trigger"
                   onKeyDown={onMenuKeyDown}
                 >
-                  {isFeatureEnabled('HISTORY') && <NavLink to="/history" role="menuitem">History</NavLink>}
-                  {isFeatureEnabled('WEIGHTS') && <NavLink to="/weights" role="menuitem">Weights</NavLink>}
                   <NavLink to="/settings" role="menuitem">Settings</NavLink>
                   <button onClick={logout} role="menuitem" className="menu-logout">Logout</button>
                 </div>
