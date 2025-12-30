@@ -357,7 +357,8 @@ export default function SettingsPage() {
             value={settings.goalKg ?? ''}
             onChange={(e) => {
               const value = e.target.value;
-              updateSetting('goalKg', value === '' ? null : parseFloat(value));
+              const parsed = parseFloat(value);
+              updateSetting('goalKg', value === '' ? null : (isNaN(parsed) ? null : parsed));
             }}
             placeholder="Enter goal weight"
             className="input"
