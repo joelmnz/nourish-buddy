@@ -8,6 +8,7 @@ import {
   Title,
   Tooltip,
   Legend,
+  type ChartDataset,
 } from 'chart.js';
 
 
@@ -31,9 +32,9 @@ export default function WeightChart({ weights, goalKg }: WeightChartProps) {
     new Date(a.date).getTime() - new Date(b.date).getTime()
   );
 
-  const datasets = [
+  const datasets: ChartDataset<'line'>[] = [
     {
-       label: 'Weight (kg)',
+      label: 'Weight (kg)',
       data: sortedWeights.map((w) => w.kg),
       borderColor: 'rgb(16, 185, 129)',
       backgroundColor: 'rgba(16, 185, 129, 0.1)',
