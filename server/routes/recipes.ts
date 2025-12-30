@@ -42,34 +42,32 @@ recipesRoutes.get('/:id', async (c) => {
 recipesRoutes.post('/', async (c) => {
   const body = await c.req.json();
   const data = createRecipeSchema.parse(body);
-  
+
   const recipeId = await recipeService.createRecipe({
     title: data.title,
     slot_keys: data.slot_keys,
-    ingredients: data.ingredients,
     instructions: data.instructions ?? null,
   });
-  
+
   return c.json({ id: recipeId }, 201);
 });
 
 recipesRoutes.put('/:id', async (c) => {
   const id = parseInt(c.req.param('id'));
   if (isNaN(id)) return c.json({ message: 'Invalid ID' }, 400);
-  
+
   const body = await c.req.json();
   const data = updateRecipeSchema.parse(body);
-  
+
   const existing = await recipeService.getRecipe(id);
   if (!existing) return c.json({ message: 'Recipe not found' }, 404);
-  
+
   await recipeService.updateRecipe(id, {
     title: data.title,
     slot_keys: data.slot_keys,
-    ingredients: data.ingredients,
     instructions: data.instructions,
   });
-  
+
   return c.json({ ok: true });
 });
 

@@ -238,20 +238,8 @@ export async function runMigrations() {
     )
   `);
 
-  sqlite.run(`
-    CREATE TABLE IF NOT EXISTS recipe_ingredients (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      recipe_id INTEGER NOT NULL,
-      qty TEXT NOT NULL,
-      item TEXT NOT NULL,
-      order_index INTEGER NOT NULL,
-      created_at TEXT NOT NULL DEFAULT (datetime('now')),
-      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-      FOREIGN KEY (recipe_id) REFERENCES recipes(id) ON DELETE CASCADE
-    )
-  `);
-
-  sqlite.run(`CREATE INDEX IF NOT EXISTS idx_recipe_ingredients_recipe ON recipe_ingredients(recipe_id)`);
+  // Drop recipe_ingredients table if it exists (no longer needed)
+  sqlite.run(`DROP TABLE IF EXISTS recipe_ingredients`);
 
   sqlite.run(`
     CREATE TABLE IF NOT EXISTS recipe_meal_slots (

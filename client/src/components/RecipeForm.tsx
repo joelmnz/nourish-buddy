@@ -5,7 +5,6 @@ interface RecipeDetail {
   id: number;
   title: string;
   slotKeys: string[];
-  ingredients: Array<{ qty: string; item: string }>;
   instructions: string | null;
 }
 
@@ -18,9 +17,6 @@ interface RecipeFormProps {
 export default function RecipeForm({ recipe, onSave, onCancel }: RecipeFormProps) {
   const [title, setTitle] = useState(recipe?.title || '');
   const [slotKeys, setSlotKeys] = useState<string[]>(recipe?.slotKeys || []);
-  const [ingredients, setIngredients] = useState<Array<{ qty: string; item: string }>>(
-    recipe?.ingredients || [{ qty: '', item: '' }]
-  );
   const [instructions, setInstructions] = useState(recipe?.instructions || '');
   const instructionsRef = useRef<HTMLTextAreaElement>(null);
   const [saving, setSaving] = useState(false);
@@ -32,7 +28,6 @@ export default function RecipeForm({ recipe, onSave, onCancel }: RecipeFormProps
     if (recipe) {
       setTitle(recipe.title);
       setSlotKeys(recipe.slotKeys);
-      setIngredients(recipe.ingredients.length > 0 ? recipe.ingredients : [{ qty: '', item: '' }]);
       setInstructions(recipe.instructions || '');
     }
   }, [recipe]);
@@ -50,18 +45,6 @@ export default function RecipeForm({ recipe, onSave, onCancel }: RecipeFormProps
     );
   }
 
-  function addIngredient() {
-    setIngredients([...ingredients, { qty: '', item: '' }]);
-  }
-
-  function removeIngredient(index: number) {
-    setIngredients(ingredients.filter((_, i) => i !== index));
-  }
-
-  function updateIngredient(index: number, field: 'qty' | 'item', value: string) {
-    setIngredients(ingredients.map((ing, i) => (i === index ? { ...ing, [field]: value } : ing)));
-  }
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!title.trim()) {
@@ -71,20 +54,16 @@ export default function RecipeForm({ recipe, onSave, onCancel }: RecipeFormProps
 
     setSaving(true);
     try {
-      const cleanIngredients = ingredients.filter((ing) => ing.qty.trim() && ing.item.trim());
-
       if (recipe) {
         await api.recipes.update(recipe.id, {
           title,
           slotKeys,
-          ingredients: cleanIngredients,
           instructions: instructions.trim() || null,
         });
       } else {
         await api.recipes.create({
           title,
           slotKeys,
-          ingredients: cleanIngredients,
           instructions: instructions.trim() || null,
         });
       }
@@ -133,42 +112,6 @@ export default function RecipeForm({ recipe, onSave, onCancel }: RecipeFormProps
               </button>
             ))}
           </div>
-        </div>
-
-        <div>
-          <div className="space-between mb-2">
-            <label className="text-sm text-muted">Ingredients</label>
-            <button type="button" onClick={addIngredient} className="btn btn-ghost btn-sm">
-              + Add
-            </button>
-          </div>
-          {ingredients.map((ing, idx) => (
-            <div key={idx} className="flex mb-2" style={{ gap: '8px', display: 'flex' }}>
-              <input
-                type="text"
-                value={ing.qty}
-                onChange={(e) => updateIngredient(idx, 'qty', e.target.value)}
-                placeholder="Qty"
-                className="input"
-                style={{ width: 100 }}
-              />
-              <input
-                type="text"
-                value={ing.item}
-                onChange={(e) => updateIngredient(idx, 'item', e.target.value)}
-                placeholder="Item"
-                className="input"
-                style={{ flex: 1 }}
-              />
-              <button
-                type="button"
-                onClick={() => removeIngredient(idx)}
-                className="btn btn-ghost btn-sm"
-              >
-                ✕
-              </button>
-            </div>
-          ))}
         </div>
 
         <div>

@@ -13,7 +13,6 @@ interface RecipeDetail {
   id: number;
   title: string;
   slotKeys: string[];
-  ingredients: Array<{ qty: string; item: string }>;
   instructions: string | null;
 }
 

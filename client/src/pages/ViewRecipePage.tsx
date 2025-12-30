@@ -8,7 +8,6 @@ interface RecipeDetail {
   id: number;
   title: string;
   slotKeys: string[];
-  ingredients: Array<{ qty: string; item: string }>;
   instructions: string | null;
 }
 
@@ -70,21 +69,6 @@ export default function ViewRecipePage() {
           )}
         </div>
       </div>
-
-      <section className="mb-6">
-        <h2 className="h3 mb-2">Ingredients</h2>
-        {recipe.ingredients.length === 0 ? (
-          <div className="text-muted">No ingredients provided.</div>
-        ) : (
-          <ul style={{ paddingLeft: '1.25rem' }}>
-            {recipe.ingredients.map((ing, idx) => (
-              <li key={idx}>
-                <span>{ing.qty ? `${ing.qty} ` : ''}{ing.item}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
 
       <section>
         <h2 className="h3 mb-2">Instructions</h2>

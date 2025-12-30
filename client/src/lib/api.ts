@@ -324,33 +324,30 @@ export const api = {
       return res.recipes;
     },
     async get(id: number) {
-      const res = await request<{ id: number; title: string; slot_keys: string[]; ingredients: Array<{ qty: string; item: string }>; instructions: string | null }>(`/api/recipes/${id}`);
+      const res = await request<{ id: number; title: string; slot_keys: string[]; instructions: string | null }>(`/api/recipes/${id}`);
       return {
         id: res.id,
         title: res.title,
         slotKeys: res.slot_keys,
-        ingredients: res.ingredients,
         instructions: res.instructions,
       };
     },
-    async create(data: { title: string; slotKeys: string[]; ingredients: Array<{ qty: string; item: string }>; instructions?: string | null }) {
+    async create(data: { title: string; slotKeys: string[]; instructions?: string | null }) {
       return request<{ id: number }>('/api/recipes', {
         method: 'POST',
         body: JSON.stringify({
           title: data.title,
           slot_keys: data.slotKeys,
-          ingredients: data.ingredients,
           instructions: data.instructions,
         }),
       });
     },
-    async update(id: number, data: { title?: string; slotKeys?: string[]; ingredients?: Array<{ qty: string; item: string }>; instructions?: string | null }) {
+    async update(id: number, data: { title?: string; slotKeys?: string[]; instructions?: string | null }) {
       return request(`/api/recipes/${id}`, {
         method: 'PUT',
         body: JSON.stringify({
           ...(data.title !== undefined ? { title: data.title } : {}),
           ...(data.slotKeys !== undefined ? { slot_keys: data.slotKeys } : {}),
-          ...(data.ingredients !== undefined ? { ingredients: data.ingredients } : {}),
           ...(data.instructions !== undefined ? { instructions: data.instructions } : {}),
         }),
       });
