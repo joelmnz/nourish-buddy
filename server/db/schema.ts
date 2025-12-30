@@ -90,16 +90,6 @@ export const recipes = sqliteTable('recipes', {
   updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
 });
 
-export const recipeIngredients = sqliteTable('recipe_ingredients', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  recipeId: integer('recipe_id').notNull().references(() => recipes.id, { onDelete: 'cascade' }),
-  qty: text('qty').notNull(),
-  item: text('item').notNull(),
-  orderIndex: integer('order_index').notNull(),
-  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
-  updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
-});
-
 export const recipeMealSlots = sqliteTable('recipe_meal_slots', {
   recipeId: integer('recipe_id').notNull().references(() => recipes.id, { onDelete: 'cascade' }),
   slotKey: text('slot_key', {
