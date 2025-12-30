@@ -1,8 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { api } from '../lib/api';
 import { getLocalDateString } from '../lib/date-utils';
 
 import WeightChart from '../components/WeightChart';
+import WeightProgressBar from '../components/WeightProgressBar';
 
 export default function WeightsPage() {
   const [weights, setWeights] = useState<Array<{ date: string; kg: number }>>([]);
@@ -96,6 +97,12 @@ export default function WeightsPage() {
     }
   }
 
+  const currentWeight = useMemo(() => {
+    if (weights.length === 0) return null;
+    const sortedWeights = [...weights].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return sortedWeights[0]?.kg ?? null;
+  }, [weights]);
+
   if (loading) {
     return <div className="text-muted">Loading...</div>;
   }
@@ -153,38 +160,9 @@ export default function WeightsPage() {
           <div className="chart-wrap">
             <WeightChart weights={weights} goalKg={goalKg} />
           </div>
-          {goalKg && goalKg > 0 && weights.length > 0 && (() => {
-            const sortedWeights = [...weights].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-            const currentWeight = sortedWeights[0]?.kg ?? 0;
-            const progressPercentage = Math.min(100, Math.max(0, (currentWeight / goalKg) * 100));
-            const isAtGoal = Math.abs(currentWeight - goalKg) < 0.5;
-            const isOverGoal = currentWeight > goalKg;
-
-            return (
-              <div className="mt-4">
-                <div className="row" style={{ justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                  <div className="text-sm text-muted">Progress to Goal</div>
-                  <div className="text-sm">
-                    <span style={{ fontWeight: 500 }}>{currentWeight} kg</span>
-                    <span className="text-muted"> / {goalKg} kg</span>
-                  </div>
-                </div>
-                <div style={{ width: '100%', height: '1rem', backgroundColor: 'rgba(161, 161, 170, 0.2)', borderRadius: '0.5rem', overflow: 'hidden' }}>
-                  <div
-                    style={{
-                      width: `${progressPercentage}%`,
-                      height: '100%',
-                      backgroundColor: isAtGoal ? 'rgb(74, 222, 128)' : isOverGoal ? 'rgb(251, 146, 60)' : 'rgb(16, 185, 129)',
-                      transition: 'width 0.3s ease',
-                    }}
-                  />
-                </div>
-                <div className="text-sm text-muted mt-2 center">
-                  {isAtGoal ? '🎉 Goal achieved!' : isOverGoal ? `${(currentWeight - goalKg).toFixed(1)} kg over goal` : `${(goalKg - currentWeight).toFixed(1)} kg to goal`}
-                </div>
-              </div>
-            );
-          })()}
+          {goalKg && goalKg > 0 && currentWeight && (
+            <WeightProgressBar currentWeight={currentWeight} goalKg={goalKg} />
+          )}
         </div>
       )}
 
