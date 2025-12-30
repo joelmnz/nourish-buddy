@@ -4,6 +4,7 @@ import { mealLogs, weights, issues } from '../db/schema.ts';
 import { requireAuth } from '../middleware/auth.ts';
 import { desc, gte } from 'drizzle-orm';
 import { sql } from 'drizzle-orm';
+import { getLocalDateString } from '../utils/date-utils.ts';
 
 type Variables = {
   auth: { authenticated: boolean };
@@ -65,11 +66,11 @@ statsRoutes.get('/meals-by-day', async (c) => {
 
   const db = await getDb();
 
-  // Compute start date (inclusive)
+  // Compute start date (inclusive) using local timezone
   const today = new Date();
   const start = new Date(today);
   start.setDate(today.getDate() - (days - 1));
-  const startStr = start.toISOString().slice(0, 10);
+  const startStr = getLocalDateString(start);
 
   // Query totals grouped by date for completed logs only
   const rows = await db
@@ -78,7 +79,7 @@ statsRoutes.get('/meals-by-day', async (c) => {
       total: sql<number>`sum(case when ${mealLogs.completed} = 1 then ${mealLogs.size} else 0 end)`,
     })
     .from(mealLogs)
-  .where(gte(mealLogs.date, startStr!))
+    .where(gte(mealLogs.date, startStr))
     .groupBy(mealLogs.date)
     .orderBy(desc(mealLogs.date));
 
@@ -93,8 +94,8 @@ statsRoutes.get('/meals-by-day', async (c) => {
   for (let i = 0; i < days; i++) {
     const d = new Date(start);
     d.setDate(start.getDate() + i);
-  const dStr = d.toISOString().slice(0, 10);
-  series.push({ date: dStr!, total: map.get(dStr)! ?? 0 });
+    const dStr = getLocalDateString(d);
+    series.push({ date: dStr, total: map.get(dStr) ?? 0 });
   }
 
   return c.json({ days, totals: series });
@@ -131,15 +132,11 @@ statsRoutes.get('/issues-by-day', async (c) => {
 
   const db = await getDb();
 
-  // Compute start date (inclusive)
+  // Compute start date (inclusive) using local timezone
   const today = new Date();
   const start = new Date(today);
   start.setDate(today.getDate() - (days - 1));
-  const startStr = start.toISOString().slice(0, 10);
-
-  if (!startStr) {
-    return c.json({ error: 'Failed to compute start date' }, 500);
-  }
+  const startStr = getLocalDateString(start);
 
   // Query totals grouped by date
   const rows = await db
@@ -163,10 +160,8 @@ statsRoutes.get('/issues-by-day', async (c) => {
   for (let i = 0; i < days; i++) {
     const d = new Date(start);
     d.setDate(start.getDate() + i);
-    const dStr = d.toISOString().slice(0, 10);
-    if (dStr) {
-      series.push({ date: dStr, total: map.get(dStr) ?? 0 });
-    }
+    const dStr = getLocalDateString(d);
+    series.push({ date: dStr, total: map.get(dStr) ?? 0 });
   }
 
   return c.json({ days, totals: series });
