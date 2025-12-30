@@ -23,26 +23,40 @@ ChartJS.register(
 
 interface WeightChartProps {
   weights: Array<{ date: string; kg: number }>;
+  goalKg?: number | null;
 }
 
-export default function WeightChart({ weights }: WeightChartProps) {
-  const sortedWeights = [...weights].sort((a, b) => 
+export default function WeightChart({ weights, goalKg }: WeightChartProps) {
+  const sortedWeights = [...weights].sort((a, b) =>
     new Date(a.date).getTime() - new Date(b.date).getTime()
   );
+
+  const datasets = [
+    {
+       label: 'Weight (kg)',
+      data: sortedWeights.map((w) => w.kg),
+      borderColor: 'rgb(16, 185, 129)',
+      backgroundColor: 'rgba(16, 185, 129, 0.1)',
+      tension: 0.4,
+    },
+  ];
+
+  if (goalKg && goalKg > 0) {
+    datasets.push({
+      label: 'Goal Weight',
+      data: sortedWeights.map(() => goalKg),
+      borderColor: 'rgb(251, 146, 60)',
+      backgroundColor: 'rgba(251, 146, 60, 0.1)',
+      tension: 0,
+      borderDash: [5, 5],
+    });
+  }
 
   const data = {
     labels: sortedWeights.map((w) =>
       new Date(w.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
     ),
-    datasets: [
-      {
-         label: 'Weight (kg)',
-        data: sortedWeights.map((w) => w.kg),
-        borderColor: 'rgb(16, 185, 129)',
-        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-        tension: 0.4,
-      },
-    ],
+    datasets,
   };
 
   const options = {
@@ -50,7 +64,10 @@ export default function WeightChart({ weights }: WeightChartProps) {
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        display: false,
+        display: !!(goalKg && goalKg > 0),
+        labels: {
+          color: 'rgb(161, 161, 170)',
+        },
       },
     },
     scales: {

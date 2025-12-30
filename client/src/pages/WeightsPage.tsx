@@ -11,12 +11,14 @@ export default function WeightsPage() {
   const [weight, setWeight] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [editingDate, setEditingDate] = useState<string | null>(null);
-  
+  const [goalKg, setGoalKg] = useState<number | null>(null);
+
   const formRef = useRef<HTMLDivElement>(null);
   const weightInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     loadWeights();
+    loadSettings();
   }, []);
 
   async function loadWeights() {
@@ -27,6 +29,15 @@ export default function WeightsPage() {
       console.error('Failed to load weights:', error);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadSettings() {
+    try {
+      const data = await api.settings.get();
+      setGoalKg(data.goalKg);
+    } catch (error) {
+      console.error('Failed to load settings:', error);
     }
   }
 
@@ -140,8 +151,40 @@ export default function WeightsPage() {
         <div className="card padded mb-4">
           <h2 className="h2">Weight Trend</h2>
           <div className="chart-wrap">
-            <WeightChart weights={weights} />
+            <WeightChart weights={weights} goalKg={goalKg} />
           </div>
+          {goalKg && goalKg > 0 && weights.length > 0 && (() => {
+            const sortedWeights = [...weights].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+            const currentWeight = sortedWeights[0]?.kg ?? 0;
+            const progressPercentage = Math.min(100, Math.max(0, (currentWeight / goalKg) * 100));
+            const isAtGoal = Math.abs(currentWeight - goalKg) < 0.5;
+            const isOverGoal = currentWeight > goalKg;
+
+            return (
+              <div className="mt-4">
+                <div className="row" style={{ justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                  <div className="text-sm text-muted">Progress to Goal</div>
+                  <div className="text-sm">
+                    <span style={{ fontWeight: 500 }}>{currentWeight} kg</span>
+                    <span className="text-muted"> / {goalKg} kg</span>
+                  </div>
+                </div>
+                <div style={{ width: '100%', height: '1rem', backgroundColor: 'rgba(161, 161, 170, 0.2)', borderRadius: '0.5rem', overflow: 'hidden' }}>
+                  <div
+                    style={{
+                      width: `${progressPercentage}%`,
+                      height: '100%',
+                      backgroundColor: isAtGoal ? 'rgb(74, 222, 128)' : isOverGoal ? 'rgb(251, 146, 60)' : 'rgb(16, 185, 129)',
+                      transition: 'width 0.3s ease',
+                    }}
+                  />
+                </div>
+                <div className="text-sm text-muted mt-2 center">
+                  {isAtGoal ? '🎉 Goal achieved!' : isOverGoal ? `${(currentWeight - goalKg).toFixed(1)} kg over goal` : `${(goalKg - currentWeight).toFixed(1)} kg to goal`}
+                </div>
+              </div>
+            );
+          })()}
         </div>
       )}
 

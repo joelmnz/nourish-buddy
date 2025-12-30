@@ -33,6 +33,9 @@ export interface Settings {
   id: number;
   remindersEnabled: boolean;
   timeFormat: TimeFormat;
+  firstDayOfWeek: number;
+  featuresEnabled: string;
+  goalKg: number | null;
   createdAt: string;
   updatedAt: string;
 }

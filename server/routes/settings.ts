@@ -11,6 +11,7 @@ const updateSettingsSchema = z.object({
   time_format: z.enum(['12', '24']).optional(),
   first_day_of_week: z.number().int().min(0).max(6).optional(),
   features_enabled: z.string().optional(),
+  goal_kg: z.number().positive().max(500).nullable().optional(),
 });
 
 type Variables = {
@@ -32,6 +33,7 @@ settingsRoutes.get('/', async (c) => {
       time_format: '12' as const,
       first_day_of_week: 0,
       features_enabled: DEFAULT_FEATURES_ENABLED,
+      goal_kg: null,
     });
   }
 
@@ -41,6 +43,7 @@ settingsRoutes.get('/', async (c) => {
     time_format: row.timeFormat,
     first_day_of_week: row.firstDayOfWeek,
     features_enabled: row.featuresEnabled || DEFAULT_FEATURES_ENABLED,
+    goal_kg: row.goalKg,
   });
 });
 
@@ -56,6 +59,7 @@ settingsRoutes.put('/', async (c) => {
   if (data.time_format !== undefined) updateData.timeFormat = data.time_format;
   if (data.first_day_of_week !== undefined) updateData.firstDayOfWeek = data.first_day_of_week;
   if (data.features_enabled !== undefined) updateData.featuresEnabled = data.features_enabled;
+  if (data.goal_kg !== undefined) updateData.goalKg = data.goal_kg;
 
   if (existing.length === 0) {
     await db.insert(settings).values({
@@ -63,6 +67,7 @@ settingsRoutes.put('/', async (c) => {
       timeFormat: data.time_format ?? '12',
       firstDayOfWeek: data.first_day_of_week ?? 0,
       featuresEnabled: data.features_enabled ?? DEFAULT_FEATURES_ENABLED,
+      goalKg: data.goal_kg ?? null,
     });
   } else {
     if (Object.keys(updateData).length > 0) {
