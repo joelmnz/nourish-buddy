@@ -11,7 +11,7 @@ const updateSettingsSchema = z.object({
   time_format: z.enum(['12', '24']).optional(),
   first_day_of_week: z.number().int().min(0).max(6).optional(),
   features_enabled: z.string().optional(),
-  goal_kg: z.number().positive().max(500).nullable().optional(),
+  goal_kg: z.number().min(1).max(500).nullable().optional(),
 });
 
 type Variables = {
