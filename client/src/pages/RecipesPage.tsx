@@ -22,20 +22,30 @@ export default function RecipesPage() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingRecipe, setEditingRecipe] = useState<RecipeDetail | undefined>();
+
+  // Debounce search query to avoid API calls on every keystroke
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const loadRecipes = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await api.recipes.list(searchQuery || undefined);
+      const data = await api.recipes.list(debouncedSearchQuery || undefined);
       setRecipes(data);
     } catch (error) {
       console.error('Failed to load recipes:', error);
     } finally {
       setLoading(false);
     }
-  }, [searchQuery]);
+  }, [debouncedSearchQuery]);
 
   useEffect(() => {
     loadRecipes();
