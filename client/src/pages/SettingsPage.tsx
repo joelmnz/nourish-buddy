@@ -44,7 +44,10 @@ export default function SettingsPage() {
   const [settings, setSettings] = useState<{ remindersEnabled: boolean; timeFormat: TimeFormat; firstDayOfWeek: number; goalKg: number | null } | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [exporting, setExporting] = useState<'meals' | 'weights' | null>(null);
+  const [exporting, setExporting] = useState<'meals' | 'weights' | 'database' | null>(null);
+  const [restoring, setRestoring] = useState(false);
+  const [restoreError, setRestoreError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [testingPush, setTestingPush] = useState(false);
   const [mealSlots, setMealSlots] = useState<Array<{ slotKey: string; orderIndex: number; time24h: string; name: string; notes: string | null }>>([]);
   const [slotChanges, setSlotChanges] = useState(false);
@@ -201,6 +204,60 @@ export default function SettingsPage() {
       console.error(`Failed to export ${type}:`, error);
     } finally {
       setExporting(null);
+    }
+  }
+
+  async function exportDatabase() {
+    setExporting('database');
+    try {
+      const blob = await api.export.database();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const dateStr = new Date().toISOString().split('T')[0].replace(/-/g, '');
+      a.download = `nourish-buddy-data-${dateStr}.db`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to export database:', error);
+      alert('Failed to export database. Please try again.');
+    } finally {
+      setExporting(null);
+    }
+  }
+
+  async function handleRestoreDatabase(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Reset file input value so the same file can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+
+    // Confirm with user
+    const confirmed = confirm(
+      'Warning: This will replace all your current data with the data from the backup file. ' +
+      'Make sure you have a recent backup before proceeding. Continue?'
+    );
+
+    if (!confirmed) return;
+
+    setRestoring(true);
+    setRestoreError(null);
+
+    try {
+      await api.export.restoreDatabase(file);
+      alert('Database restored successfully! The page will reload now.');
+      window.location.reload();
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to restore database';
+      console.error('Failed to restore database:', error);
+      setRestoreError(errorMessage);
+    } finally {
+      setRestoring(false);
     }
   }
 
@@ -660,6 +717,48 @@ export default function SettingsPage() {
           >
             {exporting === 'weights' ? 'Exporting...' : 'Export'}
           </button>
+        </div>
+
+        <div className="space-between mt-3">
+          <div>
+            <div className="font-medium">Export DB</div>
+            <div className="text-sm text-muted">Download complete database backup</div>
+          </div>
+          <button
+            onClick={exportDatabase}
+            disabled={exporting === 'database'}
+            className={`btn ${exporting === 'database' ? 'btn-ghost' : 'btn-primary'}`}
+          >
+            {exporting === 'database' ? 'Exporting...' : 'Export DB'}
+          </button>
+        </div>
+
+        <div className="space-between mt-3">
+          <div>
+            <div className="font-medium">Restore DB</div>
+            <div className="text-sm text-muted">Replace database with backup file</div>
+            {restoreError && (
+              <div className="text-sm mt-1" style={{ color: 'var(--danger)' }}>
+                {restoreError}
+              </div>
+            )}
+          </div>
+          <div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".db,.sqlite,.sqlite3"
+              onChange={handleRestoreDatabase}
+              style={{ display: 'none' }}
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={restoring}
+              className={`btn ${restoring ? 'btn-ghost' : 'btn-primary'}`}
+            >
+              {restoring ? 'Restoring...' : 'Restore DB'}
+            </button>
+          </div>
         </div>
       </div>
 

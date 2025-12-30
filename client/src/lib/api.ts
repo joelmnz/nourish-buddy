@@ -212,6 +212,34 @@ export const api = {
       });
       return response.blob();
     },
+    async database() {
+      const response = await fetch(`${API_BASE}/api/export/database`, {
+        credentials: 'include',
+        headers: { 'x-csrf-token': await getCsrfToken() },
+      });
+      if (!response.ok) {
+        throw new Error('Failed to export database');
+      }
+      return response.blob();
+    },
+    async restoreDatabase(file: File) {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch(`${API_BASE}/api/export/database`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'x-csrf-token': await getCsrfToken() },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to restore database');
+      }
+
+      return response.json();
+    },
   },
 
   push: {
