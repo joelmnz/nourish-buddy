@@ -23,7 +23,7 @@ export default function WeightProgressBar({ currentWeight, goalKg }: WeightProgr
   return (
     <div className="mt-4">
       <div className="row" style={{ justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-        <div className="text-sm text-muted">Progress to Goal</div>
+        <div className="text-sm text-muted">{progressPercentage.toFixed(0)}% of Goal Weight</div>
         <div className="text-sm">
           <span style={{ fontWeight: 500 }}>{currentWeight} kg</span>
           <span className="text-muted"> / {goalKg} kg</span>
