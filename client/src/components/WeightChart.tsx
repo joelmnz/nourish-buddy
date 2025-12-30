@@ -8,6 +8,7 @@ import {
   Title,
   Tooltip,
   Legend,
+  type ChartDataset,
 } from 'chart.js';
 
 
@@ -31,9 +32,9 @@ export default function WeightChart({ weights, goalKg }: WeightChartProps) {
     new Date(a.date).getTime() - new Date(b.date).getTime()
   );
 
-  const datasets = [
+  const datasets: ChartDataset<'line'>[] = [
     {
-       label: 'Weight (kg)',
+      label: 'Weight (kg)',
       data: sortedWeights.map((w) => w.kg),
       borderColor: 'rgb(16, 185, 129)',
       backgroundColor: 'rgba(16, 185, 129, 0.1)',
@@ -42,6 +43,17 @@ export default function WeightChart({ weights, goalKg }: WeightChartProps) {
   ];
 
   if (goalKg && goalKg > 0) {
+    const subGoalKg = Math.ceil(goalKg * 0.85);
+
+    datasets.push({
+      label: `85% (${subGoalKg} kg)`,
+      data: sortedWeights.map(() => subGoalKg),
+      borderColor: 'rgba(146, 149, 153, 1)', // Light grey
+      backgroundColor: 'rgba(209, 213, 219, 0.1)',
+      tension: 0,
+      borderDash: [5, 5],
+    });
+
     datasets.push({
       label: 'Goal Weight',
       data: sortedWeights.map(() => goalKg),

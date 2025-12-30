@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { api } from '../lib/api';
 import { getLocalDateString } from '../lib/date-utils';
 import { useSettings } from '../hooks/useSettings';
@@ -52,12 +52,19 @@ export default function SettingsPage() {
   const [currentEndpoint, setCurrentEndpoint] = useState<string | null>(null);
   const [editingDeviceName, setEditingDeviceName] = useState<{ id: number; name: string } | null>(null);
   const [loadingDevices, setLoadingDevices] = useState(false);
+  const goalKgDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     loadSettings();
     loadMealSlots();
     loadSubscriptions();
     detectCurrentEndpoint();
+
+    return () => {
+      if (goalKgDebounceRef.current) {
+        clearTimeout(goalKgDebounceRef.current);
+      }
+    };
   }, []);
 
   async function detectCurrentEndpoint() {
@@ -118,6 +125,25 @@ export default function SettingsPage() {
     if (key === 'goalKg') updated.goalKg = value as number | null;
 
     setSettings(updated);
+
+    if (key === 'goalKg') {
+      if (goalKgDebounceRef.current) clearTimeout(goalKgDebounceRef.current);
+      goalKgDebounceRef.current = setTimeout(async () => {
+        setSaving(true);
+        try {
+          await api.settings.update({ goalKg: value as number | null });
+        } catch (error) {
+          console.error('Failed to update goal weight:', error);
+          // If the update fails, we might want to reload settings or show an error
+          // For now, we'll follow the existing pattern
+        } finally {
+          setSaving(false);
+          goalKgDebounceRef.current = null;
+        }
+      }, 750); // Slightly longer debounce for weight typing
+      return;
+    }
+
     setSaving(true);
 
     try {
@@ -129,9 +155,6 @@ export default function SettingsPage() {
       }
       if (key === 'firstDayOfWeek') {
         await api.settings.update({ firstDayOfWeek: value as number });
-      }
-      if (key === 'goalKg') {
-        await api.settings.update({ goalKg: value as number | null });
       }
     } catch (error) {
       console.error('Failed to update setting:', error);
@@ -165,7 +188,7 @@ export default function SettingsPage() {
   async function exportData(type: 'meals' | 'weights') {
     setExporting(type);
     try {
-       const blob = type === 'meals' ? await api.export.meals() : await api.export.weights();
+      const blob = type === 'meals' ? await api.export.meals() : await api.export.weights();
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -204,17 +227,17 @@ export default function SettingsPage() {
       const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-         applicationServerKey: urlBase64ToUint8Array(config.publicKey),
+        applicationServerKey: urlBase64ToUint8Array(config.publicKey),
       });
 
       const json = subscription.toJSON();
       const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
       await api.push.subscribe({ endpoint: json.endpoint!, keys: { p256dh: json.keys!.p256dh!, auth: json.keys!.auth! }, tz });
-      
+
       // Reload subscriptions to show the new device
       await loadSubscriptions();
       await detectCurrentEndpoint();
-      
+
       new Notification('Nourish Buddy', {
         body: 'Test notification sent successfully!',
         icon: '/icon.svg',
@@ -466,7 +489,7 @@ export default function SettingsPage() {
               {loadingDevices ? 'Loading...' : 'Refresh'}
             </button>
           </div>
-          
+
           {subscriptions.length === 0 && !loadingDevices && (
             <div className="text-sm text-muted">
               No devices registered. Use "Test Notification" to register this device.
