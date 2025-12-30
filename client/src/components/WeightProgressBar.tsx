@@ -13,10 +13,20 @@ export default function WeightProgressBar({ currentWeight, goalKg, weights }: We
     if (weights.length < 2 || isAtGoal) return null;
 
     const sortedWeights = [...weights].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    const now = new Date();
+    const fourWeeksAgo = new Date(now.getTime() - (28 * 24 * 60 * 60 * 1000));
+
+    // Try to use rolling 4-week window for most recent trend
+    const recentWeights = sortedWeights.filter(w => new Date(w.date) >= fourWeeksAgo);
+
+    // Use recent weights if we have at least 2 data points, otherwise fall back to all data
+    const weightsToUse = recentWeights.length >= 2 ? recentWeights : sortedWeights;
+
+    if (weightsToUse.length < 2) return null;
 
     // Calculate average weight change per week
-    const firstWeight = sortedWeights[0];
-    const lastWeight = sortedWeights[sortedWeights.length - 1];
+    const firstWeight = weightsToUse[0];
+    const lastWeight = weightsToUse[weightsToUse.length - 1];
     const daysDiff = (new Date(lastWeight.date).getTime() - new Date(firstWeight.date).getTime()) / (1000 * 60 * 60 * 24);
     const weeksDiff = daysDiff / 7;
 
