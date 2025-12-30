@@ -161,7 +161,7 @@ export default function WeightsPage() {
             <WeightChart weights={weights} goalKg={goalKg} />
           </div>
           {goalKg && goalKg > 0 && currentWeight && (
-            <WeightProgressBar currentWeight={currentWeight} goalKg={goalKg} />
+            <WeightProgressBar currentWeight={currentWeight} goalKg={goalKg} weights={weights} />
           )}
         </div>
       )}

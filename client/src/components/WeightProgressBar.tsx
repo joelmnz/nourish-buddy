@@ -1,17 +1,56 @@
 interface WeightProgressBarProps {
   currentWeight: number;
   goalKg: number;
+  weights: Array<{ date: string; kg: number }>;
 }
 
-export default function WeightProgressBar({ currentWeight, goalKg }: WeightProgressBarProps) {
+export default function WeightProgressBar({ currentWeight, goalKg, weights }: WeightProgressBarProps) {
   const progressPercentage = Math.min(100, Math.max(0, (currentWeight / goalKg) * 100));
   const isAtGoal = Math.abs(currentWeight - goalKg) < 0.5;
   const isOverGoal = currentWeight > goalKg;
 
+  const calculateWeeksToGoal = (): number | null => {
+    if (weights.length < 2 || isAtGoal) return null;
+
+    const sortedWeights = [...weights].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    // Calculate average weight change per week
+    const firstWeight = sortedWeights[0];
+    const lastWeight = sortedWeights[sortedWeights.length - 1];
+    const daysDiff = (new Date(lastWeight.date).getTime() - new Date(firstWeight.date).getTime()) / (1000 * 60 * 60 * 24);
+    const weeksDiff = daysDiff / 7;
+
+    if (weeksDiff < 0.5) return null; // Not enough time has passed
+
+    const weightChange = lastWeight.kg - firstWeight.kg;
+    const weightChangePerWeek = weightChange / weeksDiff;
+
+    // Check if trend is going in the right direction
+    const targetDirection = goalKg < currentWeight ? -1 : 1; // negative if losing weight, positive if gaining
+    const trendDirection = weightChangePerWeek < 0 ? -1 : 1;
+
+    if (trendDirection !== targetDirection || Math.abs(weightChangePerWeek) < 0.01) {
+      return null; // Trend is going wrong direction or too slow
+    }
+
+    const remainingWeight = Math.abs(goalKg - currentWeight);
+    const weeksToGoal = remainingWeight / Math.abs(weightChangePerWeek);
+
+    return Math.round(weeksToGoal);
+  };
+
   const getStatusMessage = () => {
     if (isAtGoal) return '🎉 Goal achieved!';
-    if (isOverGoal) return `${(currentWeight - goalKg).toFixed(1)} kg over goal`;
-    return `${(goalKg - currentWeight).toFixed(1)} kg to goal`;
+
+    const weeksToGoal = calculateWeeksToGoal();
+    const remainingKg = (isOverGoal ? currentWeight - goalKg : goalKg - currentWeight).toFixed(1);
+    const baseMessage = isOverGoal ? `${remainingKg} kg over goal` : `${remainingKg} kg to goal`;
+
+    if (weeksToGoal && weeksToGoal > 0 && weeksToGoal < 200) {
+      return `${baseMessage} (~${weeksToGoal} ${weeksToGoal === 1 ? 'week' : 'weeks'})`;
+    }
+
+    return baseMessage;
   };
 
   const getProgressBarColor = () => {
