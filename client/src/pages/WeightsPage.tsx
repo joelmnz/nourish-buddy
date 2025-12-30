@@ -1,8 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { api } from '../lib/api';
 import { getLocalDateString } from '../lib/date-utils';
 
 import WeightChart from '../components/WeightChart';
+import WeightProgressBar from '../components/WeightProgressBar';
 
 export default function WeightsPage() {
   const [weights, setWeights] = useState<Array<{ date: string; kg: number }>>([]);
@@ -11,12 +12,14 @@ export default function WeightsPage() {
   const [weight, setWeight] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [editingDate, setEditingDate] = useState<string | null>(null);
-  
+  const [goalKg, setGoalKg] = useState<number | null>(null);
+
   const formRef = useRef<HTMLDivElement>(null);
   const weightInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     loadWeights();
+    loadSettings();
   }, []);
 
   async function loadWeights() {
@@ -27,6 +30,15 @@ export default function WeightsPage() {
       console.error('Failed to load weights:', error);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadSettings() {
+    try {
+      const data = await api.settings.get();
+      setGoalKg(data.goalKg);
+    } catch (error) {
+      console.error('Failed to load settings:', error);
     }
   }
 
@@ -85,6 +97,12 @@ export default function WeightsPage() {
     }
   }
 
+  const currentWeight = useMemo(() => {
+    if (weights.length === 0) return null;
+    const sortedWeights = [...weights].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return sortedWeights[0]?.kg ?? null;
+  }, [weights]);
+
   if (loading) {
     return <div className="text-muted">Loading...</div>;
   }
@@ -140,8 +158,11 @@ export default function WeightsPage() {
         <div className="card padded mb-4">
           <h2 className="h2">Weight Trend</h2>
           <div className="chart-wrap">
-            <WeightChart weights={weights} />
+            <WeightChart weights={weights} goalKg={goalKg} />
           </div>
+          {goalKg && goalKg > 0 && currentWeight && (
+            <WeightProgressBar currentWeight={currentWeight} goalKg={goalKg} weights={weights} />
+          )}
         </div>
       )}
 

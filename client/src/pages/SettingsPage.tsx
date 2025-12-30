@@ -41,7 +41,7 @@ type PushSubscription = {
 
 export default function SettingsPage() {
   const { isFeatureEnabled, toggleFeature, loading: featuresLoading } = useSettings();
-  const [settings, setSettings] = useState<{ remindersEnabled: boolean; timeFormat: TimeFormat; firstDayOfWeek: number } | null>(null);
+  const [settings, setSettings] = useState<{ remindersEnabled: boolean; timeFormat: TimeFormat; firstDayOfWeek: number; goalKg: number | null } | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [exporting, setExporting] = useState<'meals' | 'weights' | null>(null);
@@ -108,13 +108,14 @@ export default function SettingsPage() {
     }
   }
 
-  async function updateSetting(key: keyof { remindersEnabled: boolean; timeFormat: TimeFormat; firstDayOfWeek: number }, value: boolean | string | number | null) {
+  async function updateSetting(key: keyof { remindersEnabled: boolean; timeFormat: TimeFormat; firstDayOfWeek: number; goalKg: number | null }, value: boolean | string | number | null) {
     if (!settings) return;
 
     const updated = { ...settings };
     if (key === 'remindersEnabled') updated.remindersEnabled = value as boolean;
     if (key === 'timeFormat') updated.timeFormat = (value ? '24' : '12') as TimeFormat;
     if (key === 'firstDayOfWeek') updated.firstDayOfWeek = value as number;
+    if (key === 'goalKg') updated.goalKg = value as number | null;
 
     setSettings(updated);
     setSaving(true);
@@ -128,6 +129,9 @@ export default function SettingsPage() {
       }
       if (key === 'firstDayOfWeek') {
         await api.settings.update({ firstDayOfWeek: value as number });
+      }
+      if (key === 'goalKg') {
+        await api.settings.update({ goalKg: value as number | null });
       }
     } catch (error) {
       console.error('Failed to update setting:', error);
@@ -337,6 +341,28 @@ export default function SettingsPage() {
             <option value={5}>Friday</option>
             <option value={6}>Saturday</option>
           </select>
+        </div>
+
+        <div className="mt-3">
+          <label htmlFor="goalKg" className="block text-sm text-muted mb-2">
+            Goal Weight (kg)
+          </label>
+          <div className="text-sm text-muted mb-2">Set your target weight to track progress</div>
+          <input
+            id="goalKg"
+            type="number"
+            step="0.1"
+            min="1"
+            max="500"
+            value={settings.goalKg ?? ''}
+            onChange={(e) => {
+              const value = e.target.value;
+              const parsed = parseFloat(value);
+              updateSetting('goalKg', value === '' ? null : (isNaN(parsed) ? null : parsed));
+            }}
+            placeholder="Enter goal weight"
+            className="input"
+          />
         </div>
         {saving && <div className="mt-3 text-sm" style={{ color: 'rgb(74, 222, 128)' }}>Saving...</div>}
       </div>

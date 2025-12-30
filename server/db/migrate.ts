@@ -87,6 +87,12 @@ export async function runMigrations() {
     console.log('✓ Migrated: added features_enabled to settings');
   }
 
+  const hasGoalKg = settingsCols.some((c) => c.name === 'goal_kg');
+  if (!hasGoalKg) {
+    sqlite.run(`ALTER TABLE settings ADD COLUMN goal_kg REAL`);
+    console.log('✓ Migrated: added goal_kg to settings');
+  }
+
   sqlite.run(`
     CREATE TABLE IF NOT EXISTS meal_plan_slots (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
