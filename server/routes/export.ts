@@ -3,6 +3,7 @@ import { getDb } from '../db/index.ts';
 import { mealLogs, weights } from '../db/schema.ts';
 import { requireAuth } from '../middleware/auth.ts';
 import { desc } from 'drizzle-orm';
+import { getLocalDateString } from '../utils/date-utils.ts';
 
 type Variables = {
   auth: { authenticated: boolean };
@@ -58,8 +59,8 @@ exportRoutes.get('/meals.csv', async (c) => {
   ].join('\n');
 
   c.header('Content-Type', 'text/csv');
-  c.header('Content-Disposition', `attachment; filename="nourish-buddy-meals-${new Date().toISOString().split('T')[0]}.csv"`);
-  
+  c.header('Content-Disposition', `attachment; filename="nourish-buddy-meals-${getLocalDateString()}.csv"`);
+
   return c.body(csv);
 });
 
@@ -91,7 +92,7 @@ exportRoutes.get('/weights.csv', async (c) => {
   ].join('\n');
 
   c.header('Content-Type', 'text/csv');
-  c.header('Content-Disposition', `attachment; filename="nourish-buddy-weights-${new Date().toISOString().split('T')[0]}.csv"`);
-  
+  c.header('Content-Disposition', `attachment; filename="nourish-buddy-weights-${getLocalDateString()}.csv"`);
+
   return c.body(csv);
 });
