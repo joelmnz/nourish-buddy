@@ -3,6 +3,7 @@ import { getDb } from '../db/index.ts';
 import { mealPlanSlots, weeklyPlans, weeklyPlanEntries, recipes } from '../db/schema.ts';
 import { requireApiToken } from '../middleware/apiToken.ts';
 import { eq, asc, and } from 'drizzle-orm';
+import { getLocalDateString } from '../utils/date-utils.ts';
 
 export const plannerRoutes = new Hono();
 
@@ -88,11 +89,11 @@ plannerRoutes.get('/thisweek', async (c) => {
  */
 plannerRoutes.get('/today', async (c) => {
   const db = await getDb();
-  
-  // Get today's date in YYYY-MM-DD format
+
+  // Get today's date in YYYY-MM-DD format using local timezone
   const today = new Date();
-  const todayStr = today.toISOString().split('T')[0]!;
-  
+  const todayStr = getLocalDateString(today);
+
   // Get day of week (0 = Sunday, 1 = Monday, etc.)
   const dayOfWeek = today.getDay();
   
