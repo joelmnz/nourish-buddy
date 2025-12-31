@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { getDb, closeDb } from '../db/index.ts';
+import { getDb, closeDb, getSqliteInstance } from '../db/index.ts';
 import { mealLogs, weights } from '../db/schema.ts';
 import { requireAuth } from '../middleware/auth.ts';
 import { desc } from 'drizzle-orm';
@@ -104,6 +104,20 @@ exportRoutes.get('/database', async (c) => {
   const dbPath = env.DATABASE_PATH;
 
   try {
+    // Ensure database is initialized
+    await getDb();
+
+    // Get the SQLite instance to perform checkpoint
+    const sqlite = getSqliteInstance();
+    if (!sqlite) {
+      return c.json({ error: 'Database not initialized' }, 500);
+    }
+
+    // CRITICAL: Checkpoint WAL to flush all uncommitted transactions to main database file
+    // This ensures we export a consistent snapshot with all recent data
+    // Without this, the export would miss data in the .sqlite-wal file
+    sqlite.run('PRAGMA wal_checkpoint(FULL)');
+
     const file = Bun.file(dbPath);
 
     if (!await file.exists()) {

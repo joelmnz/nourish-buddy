@@ -36,4 +36,8 @@ export async function closeDb() {
   }
 }
 
+export function getSqliteInstance(): Database | null {
+  return sqliteInstance;
+}
+
 export { schema };
