@@ -215,6 +215,13 @@ exportRoutes.post('/database', async (c) => {
       } catch (e) {
         // Ignore cleanup errors
       }
+      // CRITICAL: Reopen the database connection if restore failed after closing it
+      // This ensures the application continues to function even if restore fails
+      try {
+        await getDb();
+      } catch (dbError) {
+        console.error('Failed to reopen database after restore failure:', dbError);
+      }
       throw error;
     }
 
