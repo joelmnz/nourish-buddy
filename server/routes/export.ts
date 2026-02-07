@@ -199,7 +199,20 @@ exportRoutes.post('/database', async (c) => {
       tempDb = null;
 
       // Close current database connection
+      // Close current database connection
       await closeDb();
+
+      // Delete WAL and SHM files to prevent corruption
+      try {
+        await unlink(`${dbPath}-wal`);
+      } catch (e) {
+        // File might not exist, continue
+      }
+      try {
+        await unlink(`${dbPath}-shm`);
+      } catch (e) {
+        // File might not exist, continue
+      }
 
       // Create backup of current database
       const backupPath = `${dbPath}.backup`;
