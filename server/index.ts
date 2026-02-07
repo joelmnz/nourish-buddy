@@ -3,7 +3,7 @@ import { serve } from 'bun';
 import { serveStatic } from 'hono/bun';
 import { getEnv } from './config/env.ts';
 import { authMiddleware } from './middleware/auth.ts';
-import { csrfMiddleware } from './middleware/csrf.ts';
+import { csrfMiddleware, csrfProtection } from './middleware/csrf.ts';
 import { corsMiddleware } from './middleware/cors.ts';
 import { securityHeadersMiddleware } from './middleware/security.ts';
 import { errorHandler } from './middleware/error.ts';
@@ -36,6 +36,7 @@ const app = new Hono<{ Variables: Variables }>();
 app.use('*', securityHeadersMiddleware);
 app.use('*', corsMiddleware());
 app.use('*', csrfMiddleware);
+app.use('*', csrfProtection);
 app.use('*', authMiddleware);
 
 app.onError(errorHandler);

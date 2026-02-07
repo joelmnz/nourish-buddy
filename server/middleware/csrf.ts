@@ -32,3 +32,19 @@ export async function requireCSRF(c: Context, next: Next) {
   
   return next();
 }
+
+export async function csrfProtection(c: Context, next: Next) {
+  const method = c.req.method;
+  // Safe methods do not require CSRF validation
+  if (['GET', 'HEAD', 'OPTIONS'].includes(method)) {
+    return next();
+  }
+
+  // Exclude paths that don't use session auth (API token auth)
+  const path = c.req.path;
+  if (path.startsWith('/api/recipies') || path.startsWith('/api/planner')) {
+    return next();
+  }
+
+  return requireCSRF(c, next);
+}
