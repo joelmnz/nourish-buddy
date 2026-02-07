@@ -107,6 +107,7 @@ export default function RecipeForm({ recipe, onSave, onCancel }: RecipeFormProps
                 type="button"
                 onClick={() => toggleSlot(slot)}
                 className={`btn btn-sm ${slotKeys.includes(slot) ? 'btn-primary' : 'btn-ghost'}`}
+                aria-pressed={slotKeys.includes(slot)}
               >
                 {slot}
               </button>
