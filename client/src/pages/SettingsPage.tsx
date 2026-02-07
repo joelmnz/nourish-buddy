@@ -232,6 +232,16 @@ export default function SettingsPage() {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // Validate file size (100MB limit matching backend)
+    const MAX_FILE_SIZE = 100 * 1024 * 1024;
+    if (file.size > MAX_FILE_SIZE) {
+      setRestoreError('File size exceeds 100MB limit');
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      return;
+    }
+
     // Reset file input value so the same file can be selected again
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
