@@ -1,7 +1,7 @@
 import { Database } from 'bun:sqlite';
 import { strict as assert } from 'node:assert';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { basename, dirname, resolve } from 'node:path';
 import { Hono } from 'hono';
 import { runMigrations } from './db/migrate.ts';
 import { weightsRoutes } from './routes/weights.ts';
@@ -12,7 +12,9 @@ import { WEIGHT_NOTES_MAX_LENGTH } from '../shared/types.ts';
 
 const path = process.env.DATABASE_PATH;
 const mode = process.argv[2];
-assert.ok(path?.startsWith(join(tmpdir(), 'nourish-weight-notes-')) && path.endsWith('/test.sqlite'), 'Use a disposable test database');
+assert.ok(path, 'Use a disposable test database');
+const parent = dirname(path);
+assert.ok(resolve(dirname(parent)) === resolve(tmpdir()) && basename(parent).startsWith('nourish-weight-notes-') && basename(path) === 'test.sqlite', 'Use a disposable test database');
 assert.ok(['fresh', 'legacy', 'api'].includes(mode ?? ''), 'Unknown fixture mode');
 if (mode === 'legacy') {
   const db = new Database(path);
@@ -24,7 +26,7 @@ if (mode === 'legacy') {
 await runMigrations();
 if (mode === 'legacy' || mode === 'fresh') {
   for (let i = 0; i < 2; i++) {
-    const db = new Database(path);
+    const db: Database = new Database(path);
     const columns = db.query("PRAGMA table_info('weights')").all() as Array<{ name: string; type: string; notnull: number }>;
     assert.ok(columns.some((c) => c.name === 'notes' && c.type === 'TEXT' && !c.notnull));
     const rows = db.query('SELECT * FROM weights ORDER BY id').all();

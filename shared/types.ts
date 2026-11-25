@@ -69,6 +69,7 @@ export interface Weight {
   id: number;
   date: string;
   kg: number;
+  notes: string | null;
   createdAt: string;
   updatedAt: string;
 }

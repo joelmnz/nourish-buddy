@@ -7,7 +7,7 @@ import WeightChart from '../components/WeightChart';
 import WeightProgressBar from '../components/WeightProgressBar';
 
 export default function WeightsPage() {
-  const [weights, setWeights] = useState<Array<{ date: string; kg: number; notes: string | null }>>([]);
+  const [weights, setWeights] = useState<Awaited<ReturnType<typeof api.weights.get>>>([]);
   const [loading, setLoading] = useState(true);
   const [date, setDate] = useState(getLocalDateString());
   const [weight, setWeight] = useState('');

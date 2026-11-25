@@ -5,12 +5,15 @@ import { join } from 'node:path';
 
 for (const mode of ['fresh', 'legacy', 'api']) {
   test(`weight notes: ${mode}`, async () => {
-    const dir = await mkdtemp(join(tmpdir(), 'nourish-weight-notes-'));
+    const tmpRoot = tmpdir();
+    const dir = await mkdtemp(join(tmpRoot, 'nourish-weight-notes-'));
     try {
-      const proc = Bun.spawn([process.execPath, 'run', 'server/weights-notes-fixture.ts', mode], {
+      const proc = Bun.spawn([process.execPath, '--no-env-file', 'run', 'server/weights-notes-fixture.ts', mode], {
         env: {
           PATH: process.env.PATH,
-          TMPDIR: tmpdir(),
+          TMPDIR: tmpRoot,
+          TMP: tmpRoot,
+          TEMP: tmpRoot,
           DATABASE_PATH: join(dir, 'test.sqlite'),
           ADMIN_USERNAME: 'test',
           ADMIN_PASSWORD: 'test-password',
