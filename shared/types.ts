@@ -63,10 +63,13 @@ export interface MealLog {
   updatedAt: string;
 }
 
+export const WEIGHT_NOTES_MAX_LENGTH = 2000;
+
 export interface Weight {
   id: number;
   date: string;
   kg: number;
+  notes: string | null;
   createdAt: string;
   updatedAt: string;
 }

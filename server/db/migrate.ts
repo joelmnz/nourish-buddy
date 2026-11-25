@@ -128,10 +128,17 @@ export async function runMigrations() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       date TEXT NOT NULL UNIQUE,
       kg REAL NOT NULL CHECK(kg > 0),
+      notes TEXT,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       updated_at TEXT NOT NULL DEFAULT (datetime('now'))
     )
   `);
+
+  const weightCols = sqlite.query(`PRAGMA table_info('weights')`).all() as Array<{ name: string }>;
+  if (!weightCols.some((c) => c.name === 'notes')) {
+    sqlite.run(`ALTER TABLE weights ADD COLUMN notes TEXT`);
+    console.log('✓ Migrated: added notes to weights');
+  }
 
   sqlite.run(`
     CREATE TABLE IF NOT EXISTS push_subscriptions (

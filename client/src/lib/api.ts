@@ -1,3 +1,5 @@
+import type { Weight } from '../../../shared/types';
+
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
 class ApiError extends Error {
@@ -170,10 +172,10 @@ export const api = {
 
   weights: {
     async get() {
-      const res = await request<{ weights: Array<{ date: string; kg: number }> }>('/api/weights');
+      const res = await request<{ weights: Array<Pick<Weight, 'date' | 'kg' | 'notes'>> }>('/api/weights');
       return res.weights;
     },
-    async create(data: { date: string; kg: number }) {
+    async create(data: { date: string; kg: number; notes?: string | null }) {
       return request('/api/weights', { method: 'POST', body: JSON.stringify(data) });
     },
     async delete(date: string) {
