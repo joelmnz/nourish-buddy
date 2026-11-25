@@ -44,6 +44,7 @@ export const weights = sqliteTable('weights', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   date: text('date').notNull().unique(),
   kg: real('kg').notNull(),
+  notes: text('notes'),
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
   updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
 });

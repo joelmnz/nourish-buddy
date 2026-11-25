@@ -1,15 +1,19 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { api } from '../lib/api';
 import { getLocalDateString } from '../lib/date-utils';
+import { WEIGHT_NOTES_MAX_LENGTH } from '../../../shared/types';
 
 import WeightChart from '../components/WeightChart';
 import WeightProgressBar from '../components/WeightProgressBar';
 
 export default function WeightsPage() {
-  const [weights, setWeights] = useState<Array<{ date: string; kg: number }>>([]);
+  const [weights, setWeights] = useState<Array<{ date: string; kg: number; notes: string | null }>>([]);
   const [loading, setLoading] = useState(true);
   const [date, setDate] = useState(getLocalDateString());
   const [weight, setWeight] = useState('');
+  const [notes, setNotes] = useState('');
+  const [originalNotes, setOriginalNotes] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [editingDate, setEditingDate] = useState<string | null>(null);
   const [goalKg, setGoalKg] = useState<number | null>(null);
@@ -52,24 +56,37 @@ export default function WeightsPage() {
       return;
     }
 
+    if (notes.length > WEIGHT_NOTES_MAX_LENGTH) {
+      setSaveError(`Notes must be at most ${WEIGHT_NOTES_MAX_LENGTH} characters.`);
+      return;
+    }
+
+    setSaveError('');
     setSubmitting(true);
     try {
-      await api.weights.create({ date, kg });
+      const normalizedNotes = notes.trim() ? notes : null;
+      const notesChanged = editingDate ? normalizedNotes !== originalNotes : normalizedNotes !== null;
+      await api.weights.create({ date, kg, ...(notesChanged ? { notes: normalizedNotes } : {}) });
       await loadWeights();
       setWeight('');
+      setNotes('');
+      setOriginalNotes(null);
       setDate(getLocalDateString());
       setEditingDate(null);
     } catch (error) {
-      console.error('Failed to save weight:', error);
+      setSaveError(`Failed to save weight. Your draft is preserved. ${error instanceof Error ? error.message : 'Please try again.'}`);
     } finally {
       setSubmitting(false);
     }
   }
 
-  function handleEdit(w: { date: string; kg: number }) {
+  function handleEdit(w: { date: string; kg: number; notes: string | null }) {
     setEditingDate(w.date);
     setDate(w.date);
     setWeight(w.kg.toString());
+    setNotes(w.notes ?? '');
+    setOriginalNotes(w.notes);
+    setSaveError('');
     
     formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     setTimeout(() => {
@@ -81,6 +98,9 @@ export default function WeightsPage() {
     setEditingDate(null);
     setDate(getLocalDateString());
     setWeight('');
+    setNotes('');
+    setOriginalNotes(null);
+    setSaveError('');
   }
 
   async function deleteWeight(date: string) {
@@ -113,7 +133,7 @@ export default function WeightsPage() {
 
       <div ref={formRef} className="card padded mb-4">
         <h2 className="h2">{editingDate ? 'Edit Weight' : 'Add/Update Weight'}</h2>
-        <form onSubmit={handleSubmit} className="row gap-4">
+        <form onSubmit={handleSubmit} className="row gap-4" style={{ flexWrap: 'wrap' }}>
           <div style={{ flex: 1 }}>
             <label htmlFor="date" className="text-sm text-muted mb-2">Date</label>
             <input
@@ -141,6 +161,13 @@ export default function WeightsPage() {
               className="input"
             />
           </div>
+          <div style={{ flex: '1 1 100%', minWidth: 0 }}>
+            <label htmlFor="weight-notes" className="text-sm text-muted mb-2">Notes (optional)</label>
+            <textarea id="weight-notes" className="input" rows={3} value={notes}
+              onChange={(e) => setNotes(e.target.value)} aria-describedby="weight-notes-help" />
+            <div id="weight-notes-help" className="text-sm text-muted">Maximum {WEIGHT_NOTES_MAX_LENGTH} characters.</div>
+          </div>
+          {saveError && <div role="alert" style={{ flex: '1 1 100%' }}>{saveError}</div>}
           <div className="row" style={{ alignItems: 'end', gap: '0.5rem' }}>
             <button type="submit" disabled={submitting} className={`btn ${submitting ? 'btn-ghost' : 'btn-primary'}`}>
               {submitting ? 'Saving...' : editingDate ? 'Update' : 'Save'}
@@ -182,7 +209,26 @@ export default function WeightsPage() {
               </thead>
               <tbody>
                 {weights.map((w) => (
-                  <tr key={w.date} className="tr">
+                  <WeightEntry key={w.date} w={w} submitting={submitting} onEdit={handleEdit} onDelete={deleteWeight} />
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function WeightEntry({ w, submitting, onEdit, onDelete }: {
+  w: { date: string; kg: number; notes: string | null };
+  submitting: boolean;
+  onEdit: (w: { date: string; kg: number; notes: string | null }) => void;
+  onDelete: (date: string) => void;
+}) {
+  return (
+    <>
+                  <tr className="tr">
                     <td className="td">
                       {new Date(w.date).toLocaleDateString('en-US', {
                         weekday: 'short',
@@ -194,7 +240,7 @@ export default function WeightsPage() {
                      <td className="td">{w.kg}</td>
                     <td className="td text-right">
                       <button 
-                        onClick={() => handleEdit(w)} 
+                        onClick={() => onEdit(w)}
                         disabled={submitting}
                         className="btn btn-primary text-sm"
                         style={{ marginRight: '0.5rem' }}
@@ -202,7 +248,7 @@ export default function WeightsPage() {
                         Edit
                       </button>
                       <button 
-                        onClick={() => deleteWeight(w.date)} 
+                        onClick={() => onDelete(w.date)}
                         disabled={submitting}
                         className="btn btn-danger text-sm"
                       >
@@ -210,12 +256,7 @@ export default function WeightsPage() {
                       </button>
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-      </div>
-    </div>
+      {w.notes && <tr><td className="td" colSpan={3} style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{w.notes}</td></tr>}
+    </>
   );
 }

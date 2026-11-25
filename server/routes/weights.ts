@@ -4,10 +4,12 @@ import { getDb } from '../db/index.ts';
 import { weights } from '../db/schema.ts';
 import { requireAuth } from '../middleware/auth.ts';
 import { eq, desc } from 'drizzle-orm';
+import { WEIGHT_NOTES_MAX_LENGTH } from '../../shared/types.ts';
 
 const upsertWeightSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   kg: z.number().positive().max(500),
+  notes: z.string().max(WEIGHT_NOTES_MAX_LENGTH).nullable().optional(),
 });
 
 type Variables = {
@@ -31,6 +33,7 @@ weightsRoutes.get('/', async (c) => {
       id: w.id,
       date: w.date,
       kg: w.kg,
+      notes: w.notes,
       created_at: w.createdAt,
       updated_at: w.updatedAt,
     })),
@@ -45,7 +48,8 @@ weightsRoutes.post('/', async (c) => {
     return c.json({ error: 'Invalid input', details: validation.error }, 400);
   }
 
-  const { date, kg } = validation.data;
+  const { date, kg, notes } = validation.data;
+  const normalizedNotes = typeof notes === 'string' && !notes.trim() ? null : notes;
   const db = await getDb();
 
   const existing = await db
@@ -59,6 +63,7 @@ weightsRoutes.post('/', async (c) => {
       .update(weights)
       .set({
         kg,
+        ...(normalizedNotes !== undefined ? { notes: normalizedNotes } : {}),
         updatedAt: new Date().toISOString(),
       })
       .where(eq(weights.date, date));
@@ -67,7 +72,7 @@ weightsRoutes.post('/', async (c) => {
   } else {
     const inserted = await db
       .insert(weights)
-      .values({ date, kg })
+      .values({ date, kg, notes: normalizedNotes })
       .returning();
 
     const record = inserted[0];
@@ -81,6 +86,7 @@ weightsRoutes.post('/', async (c) => {
         id: record.id,
         date: record.date,
         kg: record.kg,
+        notes: record.notes,
         created_at: record.createdAt,
         updated_at: record.updatedAt,
       },
