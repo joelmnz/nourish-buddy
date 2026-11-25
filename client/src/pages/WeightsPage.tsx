@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { Fragment, useState, useEffect, useRef, useMemo } from 'react';
 import { api } from '../lib/api';
 import { getLocalDateString } from '../lib/date-utils';
 import { WEIGHT_NOTES_MAX_LENGTH } from '../../../shared/types';
@@ -65,7 +65,9 @@ export default function WeightsPage() {
     setSubmitting(true);
     try {
       const normalizedNotes = notes.trim() ? notes : null;
-      const notesChanged = editingDate ? normalizedNotes !== originalNotes : normalizedNotes !== null;
+      const notesChanged = editingDate === date && editingDate !== null
+        ? normalizedNotes !== originalNotes
+        : normalizedNotes !== null;
       await api.weights.create({ date, kg, ...(notesChanged ? { notes: normalizedNotes } : {}) });
       await loadWeights();
       setWeight('');
@@ -209,7 +211,37 @@ export default function WeightsPage() {
               </thead>
               <tbody>
                 {weights.map((w) => (
-                  <WeightEntry key={w.date} w={w} submitting={submitting} onEdit={handleEdit} onDelete={deleteWeight} />
+                  <Fragment key={w.date}>
+                    <tr className="tr">
+                      <td className="td">
+                        {new Date(w.date).toLocaleDateString('en-US', {
+                          weekday: 'short',
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}
+                      </td>
+                      <td className="td">{w.kg}</td>
+                      <td className="td text-right">
+                        <button
+                          onClick={() => handleEdit(w)}
+                          disabled={submitting}
+                          className="btn btn-primary text-sm"
+                          style={{ marginRight: '0.5rem' }}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => deleteWeight(w.date)}
+                          disabled={submitting}
+                          className="btn btn-danger text-sm"
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                    {w.notes && <tr><td className="td" colSpan={3} style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{w.notes}</td></tr>}
+                  </Fragment>
                 ))}
               </tbody>
             </table>
@@ -217,46 +249,5 @@ export default function WeightsPage() {
         </div>
       </div>
     </div>
-  );
-}
-
-function WeightEntry({ w, submitting, onEdit, onDelete }: {
-  w: { date: string; kg: number; notes: string | null };
-  submitting: boolean;
-  onEdit: (w: { date: string; kg: number; notes: string | null }) => void;
-  onDelete: (date: string) => void;
-}) {
-  return (
-    <>
-                  <tr className="tr">
-                    <td className="td">
-                      {new Date(w.date).toLocaleDateString('en-US', {
-                        weekday: 'short',
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                      })}
-                    </td>
-                     <td className="td">{w.kg}</td>
-                    <td className="td text-right">
-                      <button 
-                        onClick={() => onEdit(w)}
-                        disabled={submitting}
-                        className="btn btn-primary text-sm"
-                        style={{ marginRight: '0.5rem' }}
-                      >
-                        Edit
-                      </button>
-                      <button 
-                        onClick={() => onDelete(w.date)}
-                        disabled={submitting}
-                        className="btn btn-danger text-sm"
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-      {w.notes && <tr><td className="td" colSpan={3} style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{w.notes}</td></tr>}
-    </>
   );
 }
